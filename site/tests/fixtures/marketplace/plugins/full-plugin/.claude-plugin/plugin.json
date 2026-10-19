@@ -1,0 +1,8 @@
+{
+  "name": "full-plugin",
+  "version": "2.0.0",
+  "description": "Uses every component type.",
+  "skills": ["./extra"],
+  "lspServers": "./.lsp.json",
+  "metadata": { "site": { "aliases": { "skill/main-skill": ["primary"] } } }
+}

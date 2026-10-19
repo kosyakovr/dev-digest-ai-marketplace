@@ -2,6 +2,8 @@
 
 A [Claude Code plugin marketplace](https://code.claude.com/docs/en/plugins/create-marketplace) with plugins for code review and spec-driven engineering.
 
+Browse and search it at **<https://kosyakovr.github.io/dev-digest-ai-marketplace/>**.
+
 ## Install
 
 ```bash
@@ -52,8 +54,10 @@ plugins/<name>/
   skills/<skill>/SKILL.md         skills (plus references/, templates/)
   agents/<agent>.md               subagents
   README.md  CHANGELOG.md  LICENSE
-scripts/                          CI checks and the catalog generator
-.github/workflows/                validate on every PR, tag releases on main
+scripts/                          CI checks and the README catalog generator
+site/                             catalog website (React + Vite), deployed to GitHub Pages
+docs/specs/                       specifications
+.github/workflows/                validate on every PR, tag releases and deploy the site on main
 ```
 
 ## Development
@@ -66,6 +70,9 @@ claude plugin validate plugins/review-pack --strict
 
 # Try a plugin without installing it
 claude --plugin-dir ./plugins/review-pack
+
+# Run the catalog site locally
+cd site && npm install && npm run dev
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the release rules.
