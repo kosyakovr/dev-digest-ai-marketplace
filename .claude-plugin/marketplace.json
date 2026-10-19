@@ -1,0 +1,23 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "dev-digest-ai",
+  "description": "Claude Code plugins for code review and spec-driven engineering.",
+  "owner": {
+    "name": "Ruslan Kosiakov",
+    "url": "https://github.com/kosyakovr"
+  },
+  "plugins": [
+    {
+      "name": "review-pack",
+      "source": "./plugins/review-pack",
+      "description": "Code review toolkit: a review skill with a severity-ranked checklist and an independent reviewer subagent.",
+      "category": "development"
+    },
+    {
+      "name": "sdd-engineering",
+      "source": "./plugins/sdd-engineering",
+      "description": "Spec-driven development: write a spec, review it, and turn it into a traceable implementation plan.",
+      "category": "development"
+    }
+  ]
+}

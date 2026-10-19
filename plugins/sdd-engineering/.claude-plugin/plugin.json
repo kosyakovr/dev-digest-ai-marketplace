@@ -1,0 +1,13 @@
+{
+  "name": "sdd-engineering",
+  "version": "0.1.0",
+  "description": "Spec-driven development: write a spec, review it, and turn it into a traceable implementation plan.",
+  "author": {
+    "name": "Ruslan Kosiakov",
+    "url": "https://github.com/kosyakovr"
+  },
+  "homepage": "https://github.com/kosyakovr/dev-digest-ai-marketplace/tree/main/plugins/sdd-engineering",
+  "repository": "https://github.com/kosyakovr/dev-digest-ai-marketplace",
+  "license": "MIT",
+  "keywords": ["spec-driven-development", "requirements", "planning"]
+}

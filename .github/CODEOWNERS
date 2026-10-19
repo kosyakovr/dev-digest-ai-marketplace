@@ -1,0 +1,7 @@
+# Default owner for everything.
+* @kosyakovr
+
+# CI, scripts and the catalog control what ships to users: always require review.
+/.github/ @kosyakovr
+/scripts/ @kosyakovr
+/.claude-plugin/ @kosyakovr
