@@ -1,0 +1,9 @@
+{
+  "name": "fixture-market",
+  "description": "Fixture marketplace used by the catalog tests.",
+  "owner": { "name": "Tests" },
+  "plugins": [
+    { "name": "external-plugin", "source": { "source": "github", "repo": "someone/elsewhere" }, "description": "Hosted elsewhere.", "category": "development" },
+    { "name": "full-plugin", "source": "./plugins/full-plugin", "description": "Uses every component type.", "category": "testing" }
+  ]
+}

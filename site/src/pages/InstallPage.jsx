@@ -1,0 +1,89 @@
+import { Link } from "react-router-dom";
+import { CommandBlock, ExternalTag, ScopeToggle, SecurityBadges } from "../components.jsx";
+import { marketplace, plugins, pluginsById } from "../lib/catalog.js";
+import { installCommands, settingsJson } from "../lib/install.js";
+import { useApp } from "../state.jsx";
+
+function downloadFile(name, text) {
+  const url = URL.createObjectURL(new Blob([text + "\n"], { type: "application/json" }));
+  const a = Object.assign(document.createElement("a"), { href: url, download: name });
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+export default function InstallPage() {
+  const { selection, toggle, scope } = useApp();
+  const ids = selection.filter(id => pluginsById.has(id));
+  const external = ids.filter(id => pluginsById.get(id).external);
+  const args = { repo: marketplace.repo, marketplace: marketplace.name, pluginIds: ids };
+  const settings = settingsJson(args);
+
+  return (
+    <div className="wrap">
+      <nav className="crumbs" aria-label="Breadcrumb"><Link to="/">Catalog</Link><span aria-hidden="true">/</span><span>Install list</span></nav>
+      <header className="detail-head page-head">
+        <h1 tabIndex={-1}>Install list</h1>
+        <p className="desc muted">Pick plugins, then copy the commands, or a settings file for your team's repository.</p>
+      </header>
+      <div className="builder">
+        <section aria-labelledby="pick-h">
+          <h2 id="pick-h" className="sr-only">Plugins</h2>
+          <div className="pick">
+            {plugins.map(p => (
+              <label key={p.id} htmlFor={`sel-${p.id}`}>
+                <input type="checkbox" id={`sel-${p.id}`} checked={ids.includes(p.id)} onChange={() => toggle(p.id)} />
+                <b>{p.name}</b>
+                <span className="ver">{p.version ? `v${p.version}` : <ExternalTag item={p} />}</span>
+                <span className="pdesc">{p.description}</span>
+                <span className="pdesc"><SecurityBadges plugin={p} as="span" /></span>
+              </label>
+            ))}
+          </div>
+        </section>
+
+        <section className="out" aria-labelledby="out-h">
+          <h2 id="out-h">{ids.length ? `${ids.length} plugin${ids.length === 1 ? "" : "s"} selected` : "Commands"}</h2>
+          {!ids.length ? (
+            <div className="empty">
+              <h3>Your install list is empty</h3>
+              <p>Tick plugins on the left, or use “Add to list” on any card in the catalog.</p>
+              <Link className="btn btn-primary" to="/">Browse the catalog</Link>
+            </div>
+          ) : (
+            <>
+              <ScopeToggle />
+              <div className="step">
+                <h3><span>1</span>{scope === "project" ? "Run once inside the repository" : "Run in any terminal"}</h3>
+                <CommandBlock text={installCommands({ ...args, scope })} />
+              </div>
+              {scope === "project" ? (
+                <>
+                  <div className="step">
+                    <h3><span>2</span>Commit <code>.claude/settings.json</code></h3>
+                    <p className="hint">Step 1 writes this file. To set it up by hand instead, merge this into the file and commit it.</p>
+                    <CommandBlock text={settings} label="Copy JSON" />
+                    <div><button type="button" className="btn" onClick={() => downloadFile("settings.json", settings)}>Download settings.json</button></div>
+                  </div>
+                  <div className="step">
+                    <h3><span>3</span>What teammates see</h3>
+                    <p className="hint">
+                      After they trust the folder, Claude Code offers the marketplace and enables the plugins.
+                      {external.length > 0 && <> External plugins ({external.join(", ")}) need one install per person: <code>claude plugin install &lt;name&gt;@{marketplace.name} --scope project</code>.</>}
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <p className="hint">
+                  Plugins from third-party marketplaces do not auto-update by default. Turn it on in <code>/plugin</code> → Marketplaces,
+                  or run <code>claude plugin marketplace update {marketplace.name}</code>.
+                </p>
+              )}
+            </>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}

@@ -37,6 +37,8 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
+          cache: npm
+          cache-dependency-path: site/package-lock.json
 
       - name: Install Claude Code CLI
         run: |
@@ -61,6 +63,18 @@ jobs:
             echo "::endgroup::"
           done
           exit "${status}"
+
+      - name: Site — install dependencies
+        working-directory: site
+        run: npm ci
+
+      - name: Site — tests (catalog, golden queries, install output)
+        working-directory: site
+        run: npm test
+
+      - name: Site — build
+        working-directory: site
+        run: npm run build
 
       - name: Changed plugins have a version bump
         if: github.event_name == 'pull_request'
