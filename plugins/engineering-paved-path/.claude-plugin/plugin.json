@@ -1,0 +1,25 @@
+{
+  "name": "engineering-paved-path",
+  "version": "1.0.0",
+  "description": "Shared technical skills for the paved path: React, testing, Next.js, Fastify, architecture, Drizzle, PostgreSQL, Zod, TypeScript, security and Mermaid, plus a map from files to skills.",
+  "author": {
+    "name": "Ruslan Kosiakov",
+    "url": "https://github.com/kosyakovr"
+  },
+  "homepage": "https://github.com/kosyakovr/dev-digest-ai-marketplace/tree/main/plugins/engineering-paved-path",
+  "repository": "https://github.com/kosyakovr/dev-digest-ai-marketplace",
+  "license": "MIT",
+  "keywords": [
+    "react",
+    "nextjs",
+    "fastify",
+    "drizzle",
+    "postgresql",
+    "zod",
+    "typescript",
+    "security",
+    "architecture",
+    "testing",
+    "mermaid"
+  ]
+}

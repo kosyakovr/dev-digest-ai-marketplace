@@ -3,7 +3,8 @@
 
 Covers what `claude plugin validate` does not: source directories exist,
 entry and manifest agree, required files are present, frontmatter is filled
-in, and no hidden Unicode or non-executable shell scripts slip in.
+in, dependencies resolve inside this marketplace, manifests carry no
+credentials, and no hidden Unicode or non-executable shell scripts slip in.
 
 Usage: python3 scripts/check_marketplace.py
 Exit code 0 = all checks passed, 1 = at least one error.
@@ -29,6 +30,11 @@ JSON_COMPONENT_FILES = ("hooks/hooks.json", ".mcp.json", ".lsp.json")
 # Bidi overrides and zero-width characters used to hide text from reviewers.
 HIDDEN_UNICODE = re.compile("[​-‏‪-‮⁠-⁤⁦-⁩﻿]")
 MAX_DESCRIPTION = 1024
+# Credentials never belong in a manifest: token-shaped literals, and literal
+# values under secret-sounding keys (a `${...}` placeholder is fine).
+TOKEN_LITERAL = re.compile(r"(ghp_|gho_|github_pat_|sk-ant-|sk-[A-Za-z0-9]{16}|xox[abpr]-|AKIA[0-9A-Z]{12}|AIza[0-9A-Za-z_-]{20})")
+SECRET_KEY = re.compile(r"(token|secret|password|passwd|api[_-]?key|private[_-]?key|credential)", re.I)
+MANIFEST_FILES = (".claude-plugin/plugin.json", ".mcp.json", ".lsp.json", "hooks/hooks.json")
 
 errors: list[str] = []
 
@@ -107,6 +113,62 @@ def executable_in_git(paths: list[Path]) -> set[str]:
     return {line.split("\t", 1)[1] for line in out.splitlines() if line.startswith("100755")}
 
 
+def find_secrets(value: object, path: str, where: str) -> None:
+    """Walk a parsed manifest and report literal credentials."""
+    if isinstance(value, dict):
+        for key, child in value.items():
+            child_path = f"{path}.{key}" if path else str(key)
+            if (isinstance(child, str) and child and SECRET_KEY.search(str(key))
+                    and not re.fullmatch(r"\$\{[^}]+\}", child.strip())):
+                error(f"{where}: `{child_path}` holds a literal credential; use userConfig with sensitive: true")
+            find_secrets(child, child_path, where)
+    elif isinstance(value, list):
+        for i, child in enumerate(value):
+            find_secrets(child, f"{path}[{i}]", where)
+    elif isinstance(value, str) and TOKEN_LITERAL.search(value):
+        error(f"{where}: `{path}` contains a token-shaped literal")
+
+
+def caret_allows(spec: str, version: str) -> bool | None:
+    """True/False for a simple `^X.Y.Z` range, None for anything else."""
+    m = re.fullmatch(r"\^(\d+)\.(\d+)\.(\d+)", spec.strip())
+    v = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)", version)
+    if not m or not v:
+        return None
+    lo, cur = tuple(map(int, m.groups())), tuple(map(int, v.groups()))
+    if cur < lo:
+        return False
+    if lo[0] > 0:
+        return cur[0] == lo[0]
+    return cur[:2] == lo[:2] if lo[1] > 0 else cur == lo
+
+
+def check_dependencies(manifests: dict[str, dict]) -> None:
+    """Bare dependency names must be plugins of this marketplace, and a `^`
+    range must accept the dependency's current version."""
+    for name, manifest in manifests.items():
+        for dep in manifest.get("dependencies") or []:
+            dep_name = dep if isinstance(dep, str) else dep.get("name")
+            spec = None if isinstance(dep, str) else dep.get("version")
+            if not isinstance(dep_name, str):
+                error(f"plugins/{name}: dependency {dep!r} has no name")
+                continue
+            if "@" in dep_name or (isinstance(dep, dict) and dep.get("marketplace")):
+                continue  # cross-marketplace: validated by Claude Code at install time
+            if dep_name == name:
+                error(f"plugins/{name}: depends on itself")
+            elif dep_name not in manifests:
+                error(f"plugins/{name}: dependency {dep_name!r} is not a plugin of this marketplace")
+            elif spec:
+                ok = caret_allows(spec, str(manifests[dep_name].get("version", "")))
+                if ok is False:
+                    error(f"plugins/{name}: dependency range {dep_name} {spec} excludes its current "
+                          f"version {manifests[dep_name].get('version')}")
+
+
+MANIFESTS: dict[str, dict] = {}
+
+
 def check_plugin(entry: dict, index: int) -> None:
     where = f"marketplace.json plugins[{index}]"
     name = entry.get("name")
@@ -144,6 +206,14 @@ def check_plugin(entry: dict, index: int) -> None:
         error(f"{rel(manifest_path)}: version {version!r} is not semver (X.Y.Z)")
     if manifest.get("description") != entry.get("description"):
         error(f"{rel(manifest_path)}: description differs from the marketplace entry")
+    if isinstance(name, str):
+        MANIFESTS[name] = manifest
+    for manifest_file in MANIFEST_FILES:
+        mf = plugin_dir / manifest_file
+        if mf.is_file():
+            parsed = load_json(mf)
+            if parsed is not None:
+                find_secrets(parsed, "", rel(mf))
 
     for required in REQUIRED_PLUGIN_FILES:
         if not (plugin_dir / required).is_file():
@@ -208,6 +278,7 @@ def main() -> int:
 
     for i, entry in enumerate(plugins):
         check_plugin(entry, i)
+    check_dependencies(MANIFESTS)
 
     listed = {Path(p["source"]).name for p in plugins if isinstance(p.get("source"), str)}
     if PLUGINS_DIR.is_dir():
