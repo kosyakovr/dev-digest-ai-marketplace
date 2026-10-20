@@ -75,12 +75,14 @@ Before merging a release pull request:
 
 One row per released version. Fill in the commit and eval columns when the release is merged and tagged.
 
+**1.0.0 install check (2026-10-20):** in a clean config, `claude plugin marketplace add kosyakovr/dev-digest-ai-marketplace` then `claude plugin install sdd-engineering@dev-digest-ai` installed and enabled all four plugins (`+ 3 dependencies`, no prompt), the dependencies at their `--v1.0.0` tags. The **Tag plugin releases** run tagged them in dependency order: engineering-paved-path, architecture-review, research-tools, sdd-engineering.
+
 | Date | Plugin | Version | Tag | Commit | Validation | Evals (judge: sonnet, 3 runs, with vs. without plugin) |
 |---|---|---|---|---|---|---|
-| 2026-10-20 | engineering-paved-path | 1.0.0 | `engineering-paved-path--v1.0.0` | _pending merge_ | validate --strict ✓, policy checks ✓ | 2/2 cases, 6/6 runs (Δ 0: base model already knows these rules; skill loads by namespace 3/3) |
-| 2026-10-20 | research-tools | 1.0.0 | `research-tools--v1.0.0` | _pending merge_ | validate --strict ✓, policy checks ✓ | 1/1 case, 3/3 runs, Δ +1.00 |
-| 2026-10-20 | architecture-review | 1.0.0 | `architecture-review--v1.0.0` | _pending merge_ | validate --strict ✓, policy checks ✓ | 1/1 case (repo-level), 3/3 runs, Δ +0.50 |
-| 2026-10-20 | sdd-engineering | 1.0.0 | `sdd-engineering--v1.0.0` | _pending merge_ | validate --strict ✓, policy checks ✓, self-tests ✓, four-plugin `--plugin-dir` load: 7 agents + 15 skills resolve by namespace ✓ | 3/3 cases (repo-level), 9/9 runs; Δ +0.56 spec-creator, +1.00 planner, 0 for the negative sdd-run case |
+| 2026-10-20 | engineering-paved-path | 1.0.0 | `engineering-paved-path--v1.0.0` | `90ae6ec` | validate --strict ✓, policy checks ✓ | 2/2 cases, 6/6 runs (Δ 0: base model already knows these rules; skill loads by namespace 3/3) |
+| 2026-10-20 | research-tools | 1.0.0 | `research-tools--v1.0.0` | `90ae6ec` | validate --strict ✓, policy checks ✓ | 1/1 case, 3/3 runs, Δ +1.00 |
+| 2026-10-20 | architecture-review | 1.0.0 | `architecture-review--v1.0.0` | `90ae6ec` | validate --strict ✓, policy checks ✓ | 1/1 case (repo-level), 3/3 runs, Δ +0.50 |
+| 2026-10-20 | sdd-engineering | 1.0.0 | `sdd-engineering--v1.0.0` | `90ae6ec` | validate --strict ✓, policy checks ✓, self-tests ✓, four-plugin `--plugin-dir` load: 7 agents + 15 skills resolve by namespace ✓ | 3/3 cases (repo-level), 9/9 runs; Δ +0.56 spec-creator, +1.00 planner, 0 for the negative sdd-run case |
 
 ## History
 
