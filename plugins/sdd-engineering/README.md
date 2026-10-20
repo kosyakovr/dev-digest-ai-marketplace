@@ -71,8 +71,10 @@ Shared definitions live in the plugin and are referenced through `${CLAUDE_PLUGI
 
 ## Evals
 
-`evals/` checks that the agents are reachable by their namespaced names and that `sdd-run` never fires on its own. They make paid model calls; run them by hand before a release:
+This plugin's eval cases live in the marketplace's repository-level [`evals/`](../../evals), because they need its dependencies loaded too (the eval runner loads only the plugin under test, and a plugin with missing dependencies is disabled). They check that the agents are reachable by their namespaced names and that `sdd-run` never fires on its own. They make paid model calls; run them by hand from the repository root:
 
 ```bash
-claude plugin eval plugins/sdd-engineering --no-publish
+claude plugin eval . --allow-tools Write --no-publish
 ```
+
+`--allow-tools Write` lets one case create the spec file it hands to the planner.

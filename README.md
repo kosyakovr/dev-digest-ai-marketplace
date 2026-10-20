@@ -113,12 +113,13 @@ plugins/<name>/
   .claude-plugin/plugin.json      manifest; the only place the version lives
   skills/<skill>/SKILL.md         skills (plus references/, templates/, scripts/)
   agents/<agent>.md               subagents
-  evals/<case>/                   `claude plugin eval` cases (run by hand before a release)
+  evals/<case>/                   `claude plugin eval` cases for a plugin without dependencies
   README.md  CHANGELOG.md  LICENSE
 scripts/                          CI checks and the README catalog generator
 site/                             catalog website (React + Vite), deployed to GitHub Pages
 docs/specs/                       specifications
 docs/RELEASES.md                  versions, dependency ranges, release order and evidence
+evals/                            cross-plugin eval cases (load all four plugins; `claude plugin eval .`)
 .github/workflows/                validate on every PR, tag releases and deploy the site on main
 ```
 

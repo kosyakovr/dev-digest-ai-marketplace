@@ -14,7 +14,7 @@
 1. Create `plugins/<kebab-name>/` with `.claude-plugin/plugin.json`, `README.md`, `CHANGELOG.md` and `LICENSE`. The directory name, `plugin.json` `name` and marketplace entry `name` must be identical.
 2. Add the entry to `.claude-plugin/marketplace.json`, keeping `plugins` sorted alphabetically. Copy the `description` from `plugin.json` exactly.
 3. Run `python3 scripts/generate_catalog.py` to update the README table.
-4. Add `evals/` cases that show each new skill or agent is reachable by its namespaced name (see [docs/RELEASES.md](docs/RELEASES.md#release-checklist)).
+4. Add eval cases that show each new skill or agent is reachable by its namespaced name: in `plugins/<name>/evals/` for a plugin without dependencies, in the repository-level `evals/` (with `plugins:` listing every plugin the case needs) for one with dependencies. See [docs/RELEASES.md](docs/RELEASES.md#release-checklist).
 5. Add at least one search query per new skill, agent or command to [site/tests/golden-queries.json](site/tests/golden-queries.json). CI fails until each one has a query. Check the result with `cd site && npm run dev`.
 
 ## Dependencies between plugins

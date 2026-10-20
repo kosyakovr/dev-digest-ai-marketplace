@@ -85,9 +85,11 @@ repository layout the prompt did not name.
 
 ## Step 0 — Preconditions and mode
 
-Return only this block and stop when there is no outcome (what the user should
-be able to do or see afterwards), or when the only design source is a link
-you cannot open:
+Check this **before reading any file or searching the repository**. An outcome
+is what the user should be able to do or see afterwards; "improve X", "fix the
+settings" or "make it better" with no observable change is not one, however
+much code exists around X. Return only this block and stop when there is no
+outcome, or when the only design source is a link you cannot open:
 
 ```markdown
 ## NEEDS CLARIFICATION

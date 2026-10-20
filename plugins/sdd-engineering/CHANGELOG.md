@@ -10,7 +10,7 @@ All notable changes to `sdd-engineering` are documented here. The format follows
 - `workflow-retro` (run retrospective from local transcripts) and `engineering-insights` (append-only `INSIGHTS.md` capture).
 - Plugin-level `templates/spec-template.md`, `reference/sdd-files.md`, `scripts/spec-lint.sh` (with an offline self-test) and `scripts/change-set.sh`.
 - Dependencies on `engineering-paved-path`, `research-tools` and `architecture-review`, each `^1.0.0`.
-- `evals/` cases that check the namespaced skills and agents are reachable.
+- Eval cases (in the marketplace's repository-level `evals/`, which loads all four plugins) that check the namespaced agents are reachable and `sdd-run` never fires on its own.
 
 ### Removed
 - The `write-spec` and `spec-to-plan` skill stubs and the `spec-reviewer` agent stub.

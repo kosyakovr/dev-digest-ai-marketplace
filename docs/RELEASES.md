@@ -57,10 +57,13 @@ Before merging a release pull request:
    claude --plugin-dir ./plugins/engineering-paved-path --plugin-dir ./plugins/research-tools \
           --plugin-dir ./plugins/architecture-review --plugin-dir ./plugins/sdd-engineering
    ```
-5. Run the evals of every changed plugin. They make paid model calls and need you to trust the plugin directory, so they run by hand, not in CI:
+5. Run the evals. They make paid model calls and need you to trust the directory, so they run by hand, not in CI:
    ```bash
-   claude plugin eval plugins/<name> --no-publish
+   claude plugin eval plugins/engineering-paved-path --no-publish   # plugins without dependencies
+   claude plugin eval plugins/research-tools --no-publish
+   claude plugin eval . --allow-tools Write --no-publish            # repo-level suite: architecture-review + sdd-engineering, all four plugins loaded
    ```
+   The eval runner loads only the plugin under test, and a plugin whose `dependencies` are missing is disabled, so cases for plugins with dependencies live in the repository-level `evals/` and list every plugin they need in `plugins:`.
 6. Fill in the release evidence row below (the commit SHA after the merge).
 
 ## Updating and rolling back
@@ -72,12 +75,12 @@ Before merging a release pull request:
 
 One row per released version. Fill in the commit and eval columns when the release is merged and tagged.
 
-| Date | Plugin | Version | Tag | Commit | Validation | Evals |
+| Date | Plugin | Version | Tag | Commit | Validation | Evals (judge: sonnet, 3 runs, with vs. without plugin) |
 |---|---|---|---|---|---|---|
-| 2026-10-20 | engineering-paved-path | 1.0.0 | `engineering-paved-path--v1.0.0` | _pending merge_ | validate --strict ✓, policy checks ✓ | not run yet |
-| 2026-10-20 | research-tools | 1.0.0 | `research-tools--v1.0.0` | _pending merge_ | validate --strict ✓, policy checks ✓ | not run yet |
-| 2026-10-20 | architecture-review | 1.0.0 | `architecture-review--v1.0.0` | _pending merge_ | validate --strict ✓, policy checks ✓ | not run yet |
-| 2026-10-20 | sdd-engineering | 1.0.0 | `sdd-engineering--v1.0.0` | _pending merge_ | validate --strict ✓, policy checks ✓, self-tests ✓, four-plugin `--plugin-dir` load: 7 agents + 15 skills resolve by namespace ✓ | not run yet |
+| 2026-10-20 | engineering-paved-path | 1.0.0 | `engineering-paved-path--v1.0.0` | _pending merge_ | validate --strict ✓, policy checks ✓ | 2/2 cases, 6/6 runs (Δ 0: base model already knows these rules; skill loads by namespace 3/3) |
+| 2026-10-20 | research-tools | 1.0.0 | `research-tools--v1.0.0` | _pending merge_ | validate --strict ✓, policy checks ✓ | 1/1 case, 3/3 runs, Δ +1.00 |
+| 2026-10-20 | architecture-review | 1.0.0 | `architecture-review--v1.0.0` | _pending merge_ | validate --strict ✓, policy checks ✓ | 1/1 case (repo-level), 3/3 runs, Δ +0.50 |
+| 2026-10-20 | sdd-engineering | 1.0.0 | `sdd-engineering--v1.0.0` | _pending merge_ | validate --strict ✓, policy checks ✓, self-tests ✓, four-plugin `--plugin-dir` load: 7 agents + 15 skills resolve by namespace ✓ | 3/3 cases (repo-level), 9/9 runs; Δ +0.56 spec-creator, +1.00 planner, 0 for the negative sdd-run case |
 
 ## History
 
