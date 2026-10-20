@@ -1,23 +1,38 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "dev-digest-ai",
-  "description": "Claude Code plugins for code review and spec-driven engineering.",
+  "description": "Claude Code plugins for spec-driven development: a multi-agent SDD harness, shared paved-path engineering skills, architecture review and research.",
   "owner": {
     "name": "Ruslan Kosiakov",
     "url": "https://github.com/kosyakovr"
   },
   "plugins": [
     {
-      "name": "review-pack",
-      "source": "./plugins/review-pack",
-      "description": "Code review toolkit: a review skill with a severity-ranked checklist and an independent reviewer subagent.",
+      "name": "architecture-review",
+      "source": "./plugins/architecture-review",
+      "description": "Architecture reviewer agent: checks a change against the repository's own architecture docs and the engineering-paved-path architecture skills, with verified rule-based findings.",
       "category": "development"
+    },
+    {
+      "name": "engineering-paved-path",
+      "source": "./plugins/engineering-paved-path",
+      "description": "Shared technical skills for the paved path: React, testing, Next.js, Fastify, architecture, Drizzle, PostgreSQL, Zod, TypeScript, security and Mermaid, plus a map from files to skills.",
+      "category": "development"
+    },
+    {
+      "name": "research-tools",
+      "source": "./plugins/research-tools",
+      "description": "Read-only researcher agent that answers one concrete question with evidence from the repository, official docs, changelogs and issues.",
+      "category": "research"
     },
     {
       "name": "sdd-engineering",
       "source": "./plugins/sdd-engineering",
-      "description": "Spec-driven development: write a spec, review it, and turn it into a traceable implementation plan.",
+      "description": "Spec-driven development harness: spec, plan, test, implementation and verification agents, an end-to-end /sdd-run orchestrator, run retrospectives and engineering insights.",
       "category": "development"
     }
-  ]
+  ],
+  "renames": {
+    "review-pack": "architecture-review"
+  }
 }

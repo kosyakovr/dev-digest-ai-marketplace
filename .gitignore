@@ -4,3 +4,6 @@ __pycache__/
 .claude/settings.local.json
 site/node_modules/
 site/dist/
+# Local `claude plugin eval` reports
+plugins/*/evals/results/
+evals/results/

@@ -14,7 +14,14 @@
 1. Create `plugins/<kebab-name>/` with `.claude-plugin/plugin.json`, `README.md`, `CHANGELOG.md` and `LICENSE`. The directory name, `plugin.json` `name` and marketplace entry `name` must be identical.
 2. Add the entry to `.claude-plugin/marketplace.json`, keeping `plugins` sorted alphabetically. Copy the `description` from `plugin.json` exactly.
 3. Run `python3 scripts/generate_catalog.py` to update the README table.
-4. Add at least one search query per new skill, agent or command to [site/tests/golden-queries.json](site/tests/golden-queries.json). CI fails until each one has a query. Check the result with `cd site && npm run dev`.
+4. Add eval cases that show each new skill or agent is reachable by its namespaced name: in `plugins/<name>/evals/` for a plugin without dependencies, in the repository-level `evals/` (with `plugins:` listing every plugin the case needs) for one with dependencies. See [docs/RELEASES.md](docs/RELEASES.md#release-checklist).
+5. Add at least one search query per new skill, agent or command to [site/tests/golden-queries.json](site/tests/golden-queries.json). CI fails until each one has a query. Check the result with `cd site && npm run dev`.
+
+## Dependencies between plugins
+
+- Declare them in the dependent's `plugin.json` as `{ "name": "<plugin>", "version": "^<major>.0.0" }`. Bare names resolve against this marketplace, and `check_marketplace.py` checks that the name exists and that the range accepts the dependency's current version.
+- Claude Code installs a dependency at the highest **tag** that satisfies the range, so a dependency must be released (merged and tagged) before a dependent needs its new version. Release order and the rollback procedure are in [docs/RELEASES.md](docs/RELEASES.md).
+- Refer to another plugin's components by namespace only: `engineering-paved-path:zod`, `research-tools:researcher`. Never by path; another plugin's install directory is unknown.
 
 ## Writing skills and agents
 
@@ -24,6 +31,11 @@
 - Skills replace commands for new work. Use an agent only when the task needs its own context.
 - Hook scripts: call them through their interpreter (`bash "${CLAUDE_PLUGIN_ROOT}/hooks/x.sh"`) and still mark them executable (`git update-index --chmod=+x`).
 - Do not put a `CLAUDE.md` in a plugin; it is not loaded.
+- No repository assumptions. An agent lists what it needs in an `## Inputs` table (required, default) and returns `NEEDS CLARIFICATION` when a required input is missing. Paths like `docs/specs/` are defaults, never facts.
+- Plugin-level files are referenced as `"${CLAUDE_PLUGIN_ROOT}/…"`, scripts inside a skill as `"${CLAUDE_SKILL_DIR}/scripts/…"`, always called through their interpreter.
+- Plugin agents ignore `hooks`, `permissionMode` and `mcpServers` in frontmatter; restrict them with `tools` / `disallowedTools` instead.
+- One owner per instruction: an agent cites a skill rule (`engineering-paved-path:onion-architecture §4`) instead of restating it.
+- Never put credentials in a manifest. A secret a plugin needs goes in `userConfig` with `sensitive: true`; `check_marketplace.py` fails token-shaped literals.
 
 ## Checks to run before pushing
 
@@ -32,6 +44,9 @@ python3 scripts/check_marketplace.py
 python3 scripts/generate_catalog.py --check
 claude plugin validate . --strict
 for d in plugins/*/; do claude plugin validate "$d" --strict; done
+bash plugins/sdd-engineering/scripts/test-spec-lint.sh
+bash plugins/sdd-engineering/skills/sdd-run/scripts/save-report.sh --self-test
+node --test plugins/sdd-engineering/skills/workflow-retro/scripts/retro.test.mjs
 python3 scripts/check_version_bump.py origin/main
 (cd site && npm test && npm run build)
 ```

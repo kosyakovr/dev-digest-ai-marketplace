@@ -32,7 +32,7 @@ Today the only way to discover what the `dev-digest-ai` marketplace offers is to
 ## Definitions
 
 - **Artifact:** anything a user can find in the catalog. Types: `plugin`, `skill`, `agent`, `command`, `hook`, `mcp-server`, `lsp-server`.
-- **Artifact ID:** `<plugin>` for a plugin, `<plugin>/<type>/<name>` for everything else (for example `review-pack/skill/code-review`). Stable as long as the names do not change.
+- **Artifact ID:** `<plugin>` for a plugin, `<plugin>/<type>/<name>` for everything else (for example `engineering-paved-path/skill/react-best-practices`). Stable as long as the names do not change.
 - **Hosted plugin:** a marketplace entry whose `source` is a relative path inside this repository.
 
 ## Requirements
@@ -47,7 +47,7 @@ Phase `MVP` ships first. Phase `2` is planned but not required for the first rel
 | R2 | MVP | The catalog contains every marketplace entry, and for each hosted plugin every skill, agent, command, hook event, MCP server and LSP server it declares, from both default locations and paths set in `plugin.json`. | A CI test compares artifact counts per type against a direct scan of the repository and fails on any difference. |
 | R3 | MVP | Entries with external sources appear as plugin artifacts with the metadata from their marketplace entry only, marked "external". | An external entry shows name, description, category and install command, with an "external source" label, and has no component list. |
 | R4 | MVP | Each artifact record holds: ID, type, name, description, parent plugin, plugin version, category, repository path, and searchable body text (the Markdown body for skills, agents and commands). | The generated catalog validates against a JSON schema stored in the repository. |
-| R5 | MVP | Maintainers can attach site-only data to a plugin and its components (aliases now, example prompts in phase 2) without changing `SKILL.md` or agent files. | Adding an alias for `review-pack/skill/code-review` in the plugin's site data changes search results, and `claude plugin validate --strict` still passes. |
+| R5 | MVP | Maintainers can attach site-only data to a plugin and its components (aliases now, example prompts in phase 2) without changing `SKILL.md` or agent files. | Adding an alias for `engineering-paved-path/skill/react-best-practices` in the plugin's site data changes search results, and `claude plugin validate --strict` still passes. |
 | R6 | MVP | The build fails if any hosted artifact cannot be parsed or lacks a name or description. | A PR with a `SKILL.md` that has no frontmatter fails CI with a message naming the file. |
 
 ### Search
@@ -55,10 +55,10 @@ Phase `MVP` ships first. Phase `2` is planned but not required for the first rel
 | ID | Phase | Requirement | Acceptance criteria |
 |---|---|---|---|
 | R7 | MVP | The home page has a single search box. Results update as the user types. | With 1,000 synthetic artifacts, results render within 100 ms of the last keystroke on a mid-range laptop. |
-| R8 | MVP | Natural-language queries work. Filler words are ignored, and type words (`skill`, `agent`, `plugin`, `command`, `hook`, `mcp`) narrow results to that type. | "I need a skill for reviewing pull requests" returns only skills, with `code-review` first. |
-| R9 | MVP | Search tolerates typos and matches word prefixes. | "reveiw" finds `code-review`; "spec" finds `write-spec`, `spec-to-plan` and `spec-reviewer`. |
+| R8 | MVP | Natural-language queries work. Filler words are ignored, and type words (`skill`, `agent`, `plugin`, `command`, `hook`, `mcp`) narrow results to that type. | "I need a skill for React components and hooks" returns only skills, with `react-best-practices` in the top 3. |
+| R9 | MVP | Search tolerates typos and matches word prefixes. | "reseacher" finds `researcher`; "spec" finds `spec-creator` and `implementation-planner`. |
 | R10 | MVP | Ranking favours matches in name, then aliases and description, then body text. | For "review", artifacts named `*review*` rank above artifacts that mention "review" only in their body. |
-| R11 | MVP | Results can be filtered by type, plugin and category, combined with the query. Each filter value shows its result count. | Selecting type `agent` and plugin `sdd-engineering` with an empty query shows exactly `spec-reviewer`. |
+| R11 | MVP | Results can be filtered by type, plugin and category, combined with the query. Each filter value shows its result count. | Selecting type `agent` and plugin `research-tools` with an empty query shows exactly `researcher`. |
 | R12 | MVP | A golden query set (query → expected artifact IDs in the top 3) lives in the repository and runs in CI. | CI fails when any golden query misses its expected artifact. The initial set has at least one query per hosted artifact. |
 | R13 | MVP | The query and filters are reflected in the URL. | Opening a copied URL restores the same query, filters and results. |
 | R14 | MVP | An empty result explains what was searched and offers to clear filters or browse all artifacts. | A nonsense query shows the empty state with both actions working. |
@@ -67,15 +67,15 @@ Phase `MVP` ships first. Phase `2` is planned but not required for the first rel
 
 | ID | Phase | Requirement | Acceptance criteria |
 |---|---|---|---|
-| R15 | MVP | Each result is a card with: type badge, name, parent plugin, description with matched terms highlighted, plugin version, security badges (R22), and a copy-install-command button. | The card for `code-review` shows type "skill", plugin "review-pack", and copies `claude plugin install review-pack@dev-digest-ai`. |
+| R15 | MVP | Each result is a card with: type badge, name, parent plugin, description with matched terms highlighted, plugin version, security badges (R22), and a copy-install-command button. | The card for `researcher` shows type "agent", plugin "research-tools", and copies `claude plugin install research-tools@dev-digest-ai`. |
 | R16 | MVP | Clicking a card opens the artifact's page. Keyboard users can reach and open every card. | Tab moves through cards; Enter opens the focused card. |
 
 ### Artifact pages
 
 | ID | Phase | Requirement | Acceptance criteria |
 |---|---|---|---|
-| R17 | MVP | Each plugin has a page with: rendered README, version, category, component list linking to component pages, security section (R22), changelog, and install commands for user scope and project scope. | The `review-pack` page lists `code-review` and `code-reviewer`, and both links resolve. |
-| R18 | MVP | Each skill, agent and command has a page with: description, rendered body, parent plugin link, the parent's install command, and how to invoke it (for example `/review-pack:code-review`). | The `write-spec` page shows `/sdd-engineering:write-spec`. |
+| R17 | MVP | Each plugin has a page with: rendered README, version, category, component list linking to component pages, security section (R22), changelog, and install commands for user scope and project scope. | The `sdd-engineering` page lists its five agents and three skills, and every link resolves. |
+| R18 | MVP | Each skill, agent and command has a page with: description, rendered body, parent plugin link, the parent's install command, and how to invoke it (for example `/sdd-engineering:sdd-run`). | The `sdd-run` page shows `/sdd-engineering:sdd-run`. |
 | R19 | MVP | Every page URL loads when opened directly or shared, and has its own title and description. Without JavaScript the page says so and links to the repository. | Opening each plugin, skill, agent and command URL on GitHub Pages returns HTTP 200 with that page's `<title>`; an unknown URL shows the "Page not found" page. |
 | R20 | MVP | Links inside rendered Markdown work: relative links to other files in the plugin open them on GitHub, or on the site when the target has a page. | A link checker over the built site reports no broken internal links. |
 
@@ -98,7 +98,7 @@ Phase `MVP` ships first. Phase `2` is planned but not required for the first rel
 | R23 | 2 | Each plugin shows an estimated always-on context cost: the characters and approximate tokens of the skill and agent descriptions it adds to every session. | The figure equals the sum of description lengths computed by a CI test, with the token estimate method documented on the page. |
 | R24 | 2 | A "What's new" page lists plugin releases from git tags and CHANGELOG entries, newest first, and is published as an Atom feed. | After a version bump is merged and tagged, the release appears on the page and in the feed. |
 | R25 | 2 | The catalog is published as `catalog.json` (with a schema version) and summarised in `llms.txt` at stable URLs, so other tools and agents can consume it. | Both files are reachable under the site root and `catalog.json` validates against the published schema. |
-| R26 | 2 | Skills can show 2–3 example prompts that trigger them, each with a copy button, taken from the plugin's site data (R5). | `code-review` shows its example prompts; a skill without prompts shows no empty section. |
+| R26 | 2 | Skills can show 2–3 example prompts that trigger them, each with a copy button, taken from the plugin's site data (R5). | `react-best-practices` shows its example prompts; a skill without prompts shows no empty section. |
 | R27 | 2 | A "Propose a plugin" link opens a pre-filled GitHub issue from an issue template. | The link opens the new-issue form with the template's fields filled in. |
 | R28 | 2 | A scaffold generator turns a short form (plugin name, description, components) into a downloadable zip with a plugin skeleton that passes this repository's CI checks. | A generated plugin copied into `plugins/` passes `scripts/check_marketplace.py` and `claude plugin validate --strict` once its marketplace entry is added. |
 
@@ -134,7 +134,7 @@ Hooks and MCP servers have no page of their own. Their cards open the parent plu
 - **Card:** type badge, External tag, plugin version, name (the whole card is the link), parent plugin link or component summary ("2 skills · 1 agent"), description with matched terms highlighted, security badges, "Copy install" and "Add to list" buttons.
 - **Command block:** monospaced text with a Copy button. When the clipboard is refused, the text is selected and a message says how to copy it.
 - **Security badges:** "Hooks · n", "MCP server · n", "LSP server · n", "Executables · n", shown on the plugin and on every component card of that plugin.
-- **Toast:** confirms copies and install-list changes ("review-pack added to the install list").
+- **Toast:** confirms copies and install-list changes ("sdd-engineering added to the install list").
 
 ### Behaviour notes
 
@@ -183,7 +183,6 @@ The `.claude/settings.json` generated by the install list (R21):
     }
   },
   "enabledPlugins": {
-    "review-pack@dev-digest-ai": true,
     "sdd-engineering@dev-digest-ai": true
   }
 }
@@ -193,19 +192,17 @@ The `.claude/settings.json` generated by the install list (R21):
 
 They live in [site/tests/golden-queries.json](../../site/tests/golden-queries.json) and run with `npm test`. Every skill, agent and command must appear in at least one query; the tests fail otherwise.
 
+Representative rows (the file holds one query per skill and agent, 30 in all):
+
 | Query | Filters | Expectation |
 |---|---|---|
-| I need a skill for reviewing pull requests | – | only skills; `review-pack/skill/code-review` first |
-| reveiw | – | `review-pack/skill/code-review` in the top 3 |
-| spec | – | contains `write-spec`, `spec-to-plan`, `spec-reviewer` |
-| write a spec | – | `sdd-engineering/skill/write-spec` in the top 3 |
-| turn a spec into a plan | – | `sdd-engineering/skill/spec-to-plan` in the top 3 |
-| agent that reviews code | – | only agents; `review-pack/agent/code-reviewer` first |
-| review my spec | – | `sdd-engineering/agent/spec-reviewer` in the top 3 |
+| I need a skill for React components and hooks | – | only skills; `engineering-paved-path/skill/react-best-practices` in the top 3 |
+| reseacher | – | `research-tools/agent/researcher` in the top 3 |
+| spec | – | contains `spec-creator` and `implementation-planner` |
+| run the spec end to end | – | `sdd-engineering/skill/sdd-run` in the top 3 |
 | spec driven development plugin | – | only plugins; `sdd-engineering` first |
-| code review | – | `review-pack` in the top 3 |
-| *(empty)* | type `agent`, plugin `sdd-engineering` | exactly `sdd-engineering/agent/spec-reviewer` |
-| kubernetes helm charts | – | no results |
+| *(empty)* | type `agent`, plugin `research-tools` | exactly `research-tools/agent/researcher` |
+| cobol mainframe | – | no results |
 
 ## Constraints and decisions
 
@@ -220,7 +217,7 @@ They live in [site/tests/golden-queries.json](../../site/tests/golden-queries.js
   - Light English stemming on both index and query: `-ing`, `-ed`, plural `-s`.
   - Query words are dropped if they are stop words ("I need a … for …") and turned into a type filter if they are type words.
   - Facet counts for each group ignore that group's own filter.
-- **Site-only data location:** the free-form `metadata` field of `plugin.json`, which Claude Code does not read. Keys are `plugin` or `<type>/<name>`, for example `"metadata": { "site": { "aliases": { "plugin": ["pr tools"], "skill/code-review": ["pr review", "pull request review"] } } }`. This keeps the data with the plugin and out of the model's context. Adding a custom field to `SKILL.md` frontmatter also passes `validate --strict` (checked with CLI 2.1.296), but it mixes site concerns into files written for the model.
+- **Site-only data location:** the free-form `metadata` field of `plugin.json`, which Claude Code does not read. Keys are `plugin` or `<type>/<name>`, for example `"metadata": { "site": { "aliases": { "plugin": ["pr tools"], "skill/react-best-practices": ["react hooks guide", "component patterns"] } } }`. This keeps the data with the plugin and out of the model's context. Adding a custom field to `SKILL.md` frontmatter also passes `validate --strict` (checked with CLI 2.1.296), but it mixes site concerns into files written for the model.
 - **Code location:** the site lives in `site/`, separate from the marketplace content. It only reads `plugins/` and `.claude-plugin/`; nothing in the marketplace depends on it.
 - **No runtime network calls** to GitHub or other APIs from the browser. Fonts are bundled with the site rather than loaded from Google Fonts. Anything external (for example star counts) is fetched at build time or not at all.
 - **Language:** English only, in UI, content and search.

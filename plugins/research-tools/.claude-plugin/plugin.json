@@ -1,0 +1,18 @@
+{
+  "name": "research-tools",
+  "version": "1.0.0",
+  "description": "Read-only researcher agent that answers one concrete question with evidence from the repository, official docs, changelogs and issues.",
+  "author": {
+    "name": "Ruslan Kosiakov",
+    "url": "https://github.com/kosyakovr"
+  },
+  "homepage": "https://github.com/kosyakovr/dev-digest-ai-marketplace/tree/main/plugins/research-tools",
+  "repository": "https://github.com/kosyakovr/dev-digest-ai-marketplace",
+  "license": "MIT",
+  "keywords": [
+    "research",
+    "documentation",
+    "investigation",
+    "citations"
+  ]
+}

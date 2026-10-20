@@ -47,7 +47,31 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          for dir in plugins/*/; do
+          # Dependencies first: a plugin is tagged only after every plugin it
+          # depends on, so a failure partway (bash -e stops the loop) never
+          # leaves a dependent tagged without its dependency.
+          order="$(python3 - <<'PY'
+          import json, pathlib
+          deps = {}
+          for p in sorted(pathlib.Path("plugins").glob("*/.claude-plugin/plugin.json")):
+              m = json.loads(p.read_text())
+              names = [d if isinstance(d, str) else d["name"] for d in m.get("dependencies", [])]
+              deps[m["name"]] = [n.split("@")[0] for n in names]
+          done, out = set(), []
+          def visit(n, stack=()):
+              if n in done or n not in deps:
+                  return
+              if n in stack:
+                  raise SystemExit(f"dependency cycle: {' -> '.join(stack + (n,))}")
+              for d in deps[n]:
+                  visit(d, stack + (n,))
+              done.add(n); out.append(n)
+          for n in sorted(deps):
+              visit(n)
+          print("\n".join(f"plugins/{n}/" for n in out))
+          PY
+          )"
+          for dir in $order; do
             name="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["name"])' "${dir}.claude-plugin/plugin.json")"
             version="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "${dir}.claude-plugin/plugin.json")"
             tag="${name}--v${version}"

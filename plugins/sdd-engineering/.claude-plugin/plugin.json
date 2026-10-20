@@ -1,7 +1,7 @@
 {
   "name": "sdd-engineering",
-  "version": "0.1.0",
-  "description": "Spec-driven development: write a spec, review it, and turn it into a traceable implementation plan.",
+  "version": "1.0.0",
+  "description": "Spec-driven development harness: spec, plan, test, implementation and verification agents, an end-to-end /sdd-run orchestrator, run retrospectives and engineering insights.",
   "author": {
     "name": "Ruslan Kosiakov",
     "url": "https://github.com/kosyakovr"
@@ -9,5 +9,25 @@
   "homepage": "https://github.com/kosyakovr/dev-digest-ai-marketplace/tree/main/plugins/sdd-engineering",
   "repository": "https://github.com/kosyakovr/dev-digest-ai-marketplace",
   "license": "MIT",
-  "keywords": ["spec-driven-development", "requirements", "planning"]
+  "keywords": [
+    "spec-driven-development",
+    "planning",
+    "testing",
+    "multi-agent",
+    "workflow"
+  ],
+  "dependencies": [
+    {
+      "name": "engineering-paved-path",
+      "version": "^1.0.0"
+    },
+    {
+      "name": "research-tools",
+      "version": "^1.0.0"
+    },
+    {
+      "name": "architecture-review",
+      "version": "^1.0.0"
+    }
+  ]
 }

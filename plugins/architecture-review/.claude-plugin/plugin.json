@@ -1,0 +1,24 @@
+{
+  "name": "architecture-review",
+  "version": "1.0.0",
+  "description": "Architecture reviewer agent: checks a change against the repository's own architecture docs and the engineering-paved-path architecture skills, with verified rule-based findings.",
+  "author": {
+    "name": "Ruslan Kosiakov",
+    "url": "https://github.com/kosyakovr"
+  },
+  "homepage": "https://github.com/kosyakovr/dev-digest-ai-marketplace/tree/main/plugins/architecture-review",
+  "repository": "https://github.com/kosyakovr/dev-digest-ai-marketplace",
+  "license": "MIT",
+  "keywords": [
+    "architecture",
+    "code-review",
+    "layering",
+    "adr"
+  ],
+  "dependencies": [
+    {
+      "name": "engineering-paved-path",
+      "version": "^1.0.0"
+    }
+  ]
+}
