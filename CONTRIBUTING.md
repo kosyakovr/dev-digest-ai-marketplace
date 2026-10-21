@@ -11,10 +11,10 @@
 
 ## Adding a plugin
 
-1. Create `plugins/<kebab-name>/` with `.claude-plugin/plugin.json`, `README.md`, `CHANGELOG.md` and `LICENSE`. The directory name, `plugin.json` `name` and marketplace entry `name` must be identical.
-2. Add the entry to `.claude-plugin/marketplace.json`, keeping `plugins` sorted alphabetically. Copy the `description` from `plugin.json` exactly.
-3. Run `python3 scripts/generate_catalog.py` to update the README table.
-4. Add eval cases that show each new skill or agent is reachable by its namespaced name: in `plugins/<name>/evals/` for a plugin without dependencies, in the repository-level `evals/` (with `plugins:` listing every plugin the case needs) for one with dependencies. See [docs/RELEASES.md](docs/RELEASES.md#release-checklist).
+1. Create `plugins/<kebab-name>/` with `.claude-plugin/plugin.json` (including `metadata.category`), `README.md`, `CHANGELOG.md` and `LICENSE`. The directory name and the `plugin.json` `name` must be identical.
+2. Do not edit `.claude-plugin/marketplace.json`: that is the stable catalog. Once merged, the plugin appears in the latest channel automatically; it reaches stable through a promotion PR ([docs/RELEASES.md](docs/RELEASES.md#promoting-to-stable)).
+3. Run `python3 scripts/generate_catalog.py` to update the version tables in `README.md` and `docs/RELEASES.md`.
+4. Add eval cases that show each new skill or agent is reachable by its namespaced name: in `plugins/<name>/evals/` for a plugin without dependencies, in the repository-level `evals/` (with `plugins:` listing every plugin the case needs, and the plugin's name in `tags`) for one with dependencies.
 5. Add at least one search query per new skill, agent or command to [site/tests/golden-queries.json](site/tests/golden-queries.json). CI fails until each one has a query. Check the result with `cd site && npm run dev`.
 
 ## Dependencies between plugins
@@ -50,9 +50,11 @@ bash plugins/sdd-engineering/scripts/test-spec-lint.sh
 bash plugins/sdd-engineering/skills/sdd-run/scripts/save-report.sh --self-test
 node --test plugins/sdd-engineering/skills/workflow-retro/scripts/retro.test.mjs
 python3 scripts/check_version_bump.py origin/main
+PR_TITLE="<your PR title>" python3 scripts/check_promotion.py origin/main
+bash scripts/build_latest_branch.sh HEAD   # dry run of the latest catalog; builds a local commit, pushes nothing
 (cd site && npm test && npm run build)
 ```
 
 ## Releases
 
-After a merge to `main`, the **Tag plugin releases** workflow runs `claude plugin tag` and pushes a `<plugin>--v<version>` tag for every version that is not tagged yet.
+Every merge to `main` reaches the **latest** channel: the **Release channels** workflow regenerates branch `latest`. A version reaches **stable** only through a promotion PR, one plugin each, which also triggers its `<plugin>--v<version>` tag. The procedure, with the evals to run before a promotion, is in [docs/RELEASES.md](docs/RELEASES.md).

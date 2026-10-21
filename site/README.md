@@ -3,7 +3,7 @@
 The searchable catalog of the `dev-digest-ai` marketplace, published to GitHub Pages at
 <https://kosyakovr.github.io/dev-digest-ai-marketplace/>. Spec: [docs/specs/catalog-site.md](../docs/specs/catalog-site.md).
 
-The site lives in its own directory and never changes the marketplace. It reads the marketplace at build time and shows exactly what `.claude-plugin/marketplace.json` lists: no sample or hand-written catalog data.
+The site lives in its own directory and never changes the marketplace. It reads the marketplace at build time: no sample or hand-written catalog data. It lists every plugin under `plugins/` (the latest channel) plus external entries of `.claude-plugin/marketplace.json` (the stable channel), with pages built from the working tree, and marks each plugin's stable version, or "latest only", and its latest version ([release channels spec](../docs/specs/release-channels.md), R15). The install page emits the add command, install commands and team settings of the channel the user picks.
 
 ## Develop
 
@@ -34,6 +34,7 @@ plugins/ + .claude-plugin/ ──► catalog/build-catalog.mjs ──► virtual
 ```
 
 - `catalog/build-catalog.mjs` scans the marketplace: plugins, skills, agents, commands, hooks, MCP and LSP servers and `bin/` executables, including paths set in `plugin.json`. It renders Markdown to HTML at build time and fails the build on invalid frontmatter.
+- A stable pin's version is read from `plugins/<name>/.claude-plugin/plugin.json` at the pinned commit with `git show`, so the build needs the full history (`fetch-depth: 0` in CI). If git cannot read it, the build fails.
 - `src/lib/search.js` is the search engine (MiniSearch with stemming, stop words and type words).
 - `scripts/write-routes.mjs` writes `dist/<route>/index.html` for every page, so every URL loads directly on GitHub Pages with its own title and description.
 

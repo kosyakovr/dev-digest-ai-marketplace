@@ -51,7 +51,7 @@ jobs:
       - name: Policy check tests
         run: python3 scripts/test_check_marketplace.py
 
-      - name: README catalog is up to date
+      - name: Version tables are up to date
         run: python3 scripts/generate_catalog.py --check
 
       - name: claude plugin validate (marketplace)
@@ -66,6 +66,12 @@ jobs:
             echo "::endgroup::"
           done
           exit "${status}"
+
+      - name: Latest catalog builds and validates (dry run, nothing pushed)
+        run: |
+          git config user.name "ci"
+          git config user.email "ci@example.invalid"
+          bash scripts/build_latest_branch.sh HEAD
 
       - name: Site — install dependencies
         working-directory: site
@@ -84,3 +90,10 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref }}
         run: python3 scripts/check_version_bump.py "origin/${BASE_REF}"
+
+      - name: Stable pins change only through promotions
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: python3 scripts/check_promotion.py "origin/${BASE_REF}"

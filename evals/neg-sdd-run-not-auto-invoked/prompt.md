@@ -1,7 +1,7 @@
 ---
 plugins: ["../../plugins/engineering-paved-path", "../../plugins/research-tools", "../../plugins/architecture-review", "../../plugins/sdd-engineering"]
 description: The sdd-run orchestrator is user-invoked only; an ordinary feature request does not trigger it.
-tags: [negative]
+tags: [sdd-engineering, negative]
 max_turns: 4
 timeout_seconds: 120
 allowed_tools: [Skill]

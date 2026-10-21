@@ -1,7 +1,7 @@
 ---
 plugins: ["../../plugins/engineering-paved-path", "../../plugins/research-tools", "../../plugins/architecture-review", "../../plugins/sdd-engineering"]
 description: implementation-planner is reachable by its namespaced name and refuses to plan from a spec that is not approved.
-tags: [namespace, agents]
+tags: [sdd-engineering, namespace, agents]
 max_turns: 10
 timeout_seconds: 300
 allowed_tools: [Agent, Write]

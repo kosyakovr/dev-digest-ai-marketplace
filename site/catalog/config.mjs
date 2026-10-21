@@ -8,3 +8,10 @@ export const SITE_BASE = process.env.SITE_BASE || `/${REPO.split("/")[1]}/`;
 
 /** Branch that GitHub "View source" links point to. */
 export const BRANCH = "main";
+
+/**
+ * The latest release channel: a second marketplace in the same repository, served from its own branch
+ * (docs/specs/release-channels.md). The stable channel is the marketplace in .claude-plugin/marketplace.json.
+ */
+export const LATEST_MARKETPLACE = "dev-digest-ai-latest";
+export const LATEST_REF = "latest";

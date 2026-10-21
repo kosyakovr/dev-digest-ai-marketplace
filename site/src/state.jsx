@@ -1,4 +1,4 @@
-// App-wide state: the install list (kept in localStorage), the install scope, and toasts.
+// App-wide state: the install list (kept in localStorage), the install scope and release channel, and toasts.
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { pluginsById } from "./lib/catalog.js";
 
@@ -17,6 +17,7 @@ function loadSelection() {
 export function AppProvider({ children }) {
   const [selection, setSelection] = useState(loadSelection);
   const [scope, setScope] = useState("user");
+  const [channel, setChannel] = useState("stable");
   const [toast, setToast] = useState(null);
   const timer = useRef();
 
@@ -42,7 +43,10 @@ export function AppProvider({ children }) {
     notify(on ? `${id} removed from the install list` : `${id} added to the install list`);
   }, [selection, notify]);
 
-  const value = useMemo(() => ({ selection, toggle, scope, setScope, notify, toast }), [selection, toggle, scope, notify, toast]);
+  const value = useMemo(
+    () => ({ selection, toggle, scope, setScope, channel, setChannel, notify, toast }),
+    [selection, toggle, scope, channel, notify, toast],
+  );
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 
