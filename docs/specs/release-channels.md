@@ -1,6 +1,6 @@
 # Spec: Stable and latest release channels
 
-- **Status:** draft (open questions answered by the owner, 2026-10-21)
+- **Status:** approved (open questions answered and the spec approved by the owner, 2026-10-21)
 - **Owner:** Ruslan Kosiakov
 - **Last updated:** 2026-10-21
 - **Sources:** [docs/ideas/release-channels.md](../ideas/release-channels.md) (research, decisions and checks, 2026-10-21), and the Claude Code plugin docs ([host a marketplace](https://code.claude.com/docs/en/plugins/host-marketplace.md), [marketplace reference](https://code.claude.com/docs/en/plugins/marketplace-reference.md), [dependencies](https://code.claude.com/docs/en/plugins/dependencies.md)).
