@@ -115,8 +115,8 @@ Commit this to the project's `.claude/settings.json`. It registers the marketpla
 
 Enabling `sdd-engineering` enables its three dependencies as well.
 
-- **Stable: each teammate installs once.** The stable catalog pins every plugin to a commit, and a project settings file alone does not install such a plugin: Claude Code reports `Plugin "<name>" is enabled in project settings but isn't installed`. After trusting the folder, each teammate runs `claude plugin install sdd-engineering@dev-digest-ai --scope project` once; auto-update keeps it current from then on.
-- **Latest: nothing to install.** Name the marketplace `dev-digest-ai-latest`, add `"ref": "latest"` to its `source`, and enable `sdd-engineering@dev-digest-ai-latest`. The latest catalog lists plugins by path, so they install from the settings file alone.
+- **Each teammate installs once, in either channel.** After trusting the folder, each teammate runs `claude plugin install sdd-engineering@dev-digest-ai --scope project` once; auto-update keeps the plugins current from then on. The settings file alone is not enough: in stable, every plugin is pinned to a commit, and Claude Code does not install it (`Plugin "<name>" is enabled in project settings but isn't installed`); in latest, the plugins arrive but a new session loads them only after `/reload-plugins`, and `claude -p` not at all (checked 2026-10-21 on Claude Code 2.1.296).
+- **Latest.** Name the marketplace `dev-digest-ai-latest`, add `"ref": "latest"` to its `source`, enable `sdd-engineering@dev-digest-ai-latest`, and install that id once.
 - **How auto-update behaves.** It runs in the background of an interactive session, a few minutes after the first message, and installs any dependency a new version adds. A running session keeps the version it loaded until `/reload-plugins` or the next start. `DISABLE_AUTOUPDATER=1`, `DISABLE_UPDATES=1` or `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1` turn it off unless `FORCE_AUTOUPDATE_PLUGINS=1` is also set.
 
 The [install list](https://kosyakovr.github.io/dev-digest-ai-marketplace/install/) builds this file for any set of plugins and either channel.

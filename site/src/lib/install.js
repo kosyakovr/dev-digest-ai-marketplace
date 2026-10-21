@@ -36,12 +36,6 @@ export function channelFor(plugin, preferred) {
   return inChannel(plugin, preferred) ? preferred : CHANNELS.find(c => inChannel(plugin, c)) || preferred;
 }
 
-/** Whether each teammate installs the plugin once: a project settings file alone installs only a plugin the
- * marketplace lists by relative path, so not a stable pin (a git-subdir at a commit) or a plugin hosted elsewhere. */
-export function needsOwnInstall(plugin, channel) {
-  return Boolean(plugin.external || (channel === "stable" && plugin.stableCommit));
-}
-
 /** What to say instead of an install command for plugins the chosen channel does not list. */
 export function notInChannel(names, channel) {
   const them = names.length === 1 ? "it" : "them";
