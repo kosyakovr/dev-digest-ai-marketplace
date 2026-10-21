@@ -11,7 +11,7 @@ only in `plugin.json`, CHANGELOG entry) are in [CONTRIBUTING.md](../CONTRIBUTING
 | engineering-paved-path | 1.0.0 | `engineering-paved-path--v1.0.0` | — |
 | research-tools | 1.0.0 | `research-tools--v1.0.0` | — |
 | architecture-review | 1.0.0 | `architecture-review--v1.0.0` | engineering-paved-path `^1.0.0` |
-| sdd-engineering | 1.0.0 | `sdd-engineering--v1.0.0` | engineering-paved-path `^1.0.0`, research-tools `^1.0.0`, architecture-review `^1.0.0` |
+| sdd-engineering | 1.1.0 | `sdd-engineering--v1.1.0` | engineering-paved-path `^1.0.0`, research-tools `^1.0.0`, architecture-review `^1.0.0` |
 
 ```mermaid
 flowchart BT
@@ -61,7 +61,7 @@ Before merging a release pull request:
    ```bash
    claude plugin eval plugins/engineering-paved-path --no-publish   # plugins without dependencies
    claude plugin eval plugins/research-tools --no-publish
-   claude plugin eval . --allow-tools Write --no-publish            # repo-level suite: architecture-review + sdd-engineering, all four plugins loaded
+   claude plugin eval . --allow-tools Write Edit "Bash(bash *)" "Bash(git *)" --no-publish   # repo-level suite: architecture-review + sdd-engineering, all four plugins loaded
    ```
    The eval runner loads only the plugin under test, and a plugin whose `dependencies` are missing is disabled, so cases for plugins with dependencies live in the repository-level `evals/` and list every plugin they need in `plugins:`.
 6. Fill in the release evidence row below (the commit SHA after the merge).
