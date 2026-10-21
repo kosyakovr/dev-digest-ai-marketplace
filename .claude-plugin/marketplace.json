@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "dev-digest-ai",
-  "description": "Claude Code plugins for spec-driven development: a multi-agent SDD harness, shared paved-path engineering skills, architecture review and research.",
+  "name": "dev-digest-ai-latest",
+  "description": "Claude Code plugins for spec-driven development: a multi-agent SDD harness, shared paved-path engineering skills, architecture review and research. Latest channel: every plugin and version as soon as it is merged.",
   "owner": {
     "name": "Ruslan Kosiakov",
     "url": "https://github.com/kosyakovr"
@@ -9,49 +9,25 @@
   "plugins": [
     {
       "name": "architecture-review",
-      "source": {
-        "source": "git-subdir",
-        "url": "https://github.com/kosyakovr/dev-digest-ai-marketplace.git",
-        "path": "plugins/architecture-review",
-        "ref": "main",
-        "sha": "f26efd727dd88bb9ba5bc6fe05c10200132e0f5b"
-      },
+      "source": "./plugins/architecture-review",
       "description": "Architecture reviewer agent: checks a change against the repository's own architecture docs and the engineering-paved-path architecture skills, with verified rule-based findings.",
       "category": "development"
     },
     {
       "name": "engineering-paved-path",
-      "source": {
-        "source": "git-subdir",
-        "url": "https://github.com/kosyakovr/dev-digest-ai-marketplace.git",
-        "path": "plugins/engineering-paved-path",
-        "ref": "main",
-        "sha": "f26efd727dd88bb9ba5bc6fe05c10200132e0f5b"
-      },
+      "source": "./plugins/engineering-paved-path",
       "description": "Shared technical skills for the paved path: React, testing, Next.js, Fastify, architecture, Drizzle, PostgreSQL, Zod, TypeScript, security and Mermaid, plus a map from files to skills.",
       "category": "development"
     },
     {
       "name": "research-tools",
-      "source": {
-        "source": "git-subdir",
-        "url": "https://github.com/kosyakovr/dev-digest-ai-marketplace.git",
-        "path": "plugins/research-tools",
-        "ref": "main",
-        "sha": "f26efd727dd88bb9ba5bc6fe05c10200132e0f5b"
-      },
+      "source": "./plugins/research-tools",
       "description": "Read-only researcher agent that answers one concrete question with evidence from the repository, official docs, changelogs and issues.",
       "category": "research"
     },
     {
       "name": "sdd-engineering",
-      "source": {
-        "source": "git-subdir",
-        "url": "https://github.com/kosyakovr/dev-digest-ai-marketplace.git",
-        "path": "plugins/sdd-engineering",
-        "ref": "main",
-        "sha": "f26efd727dd88bb9ba5bc6fe05c10200132e0f5b"
-      },
+      "source": "./plugins/sdd-engineering",
       "description": "Spec-driven development harness: spec, plan, test, implementation and verification agents, an end-to-end /sdd-run orchestrator, run retrospectives and engineering insights.",
       "category": "development"
     }
