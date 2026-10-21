@@ -97,13 +97,14 @@ No agent assumes a repository layout. The run resolves each input once — `--in
 
 ## Use in a team repository
 
-Commit this to the project's `.claude/settings.json` so that everyone who trusts the folder gets the marketplace and the plugins:
+Commit this to the project's `.claude/settings.json`. It registers the marketplace for everyone who trusts the folder, turns on background auto-update for it (third-party marketplaces have it off by default), and enables the plugins:
 
 ```json
 {
   "extraKnownMarketplaces": {
     "dev-digest-ai": {
-      "source": { "source": "github", "repo": "kosyakovr/dev-digest-ai-marketplace" }
+      "source": { "source": "github", "repo": "kosyakovr/dev-digest-ai-marketplace" },
+      "autoUpdate": true
     }
   },
   "enabledPlugins": {
@@ -114,7 +115,11 @@ Commit this to the project's `.claude/settings.json` so that everyone who trusts
 
 Enabling `sdd-engineering` enables its three dependencies as well.
 
-For the latest channel, name the marketplace `dev-digest-ai-latest`, add `"ref": "latest"` to its `source`, and enable `sdd-engineering@dev-digest-ai-latest`.
+- **Stable: each teammate installs once.** The stable catalog pins every plugin to a commit, and a project settings file alone does not install such a plugin: Claude Code reports `Plugin "<name>" is enabled in project settings but isn't installed`. After trusting the folder, each teammate runs `claude plugin install sdd-engineering@dev-digest-ai --scope project` once; auto-update keeps it current from then on.
+- **Latest: nothing to install.** Name the marketplace `dev-digest-ai-latest`, add `"ref": "latest"` to its `source`, and enable `sdd-engineering@dev-digest-ai-latest`. The latest catalog lists plugins by path, so they install from the settings file alone.
+- **How auto-update behaves.** It runs in the background of an interactive session, a few minutes after the first message, and installs any dependency a new version adds. A running session keeps the version it loaded until `/reload-plugins` or the next start. `DISABLE_AUTOUPDATER=1`, `DISABLE_UPDATES=1` or `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1` turn it off unless `FORCE_AUTOUPDATE_PLUGINS=1` is also set.
+
+The [install list](https://kosyakovr.github.io/dev-digest-ai-marketplace/install/) builds this file for any set of plugins and either channel.
 
 ## Repository layout
 

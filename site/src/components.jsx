@@ -1,7 +1,7 @@
 import { useId, useRef } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { componentSummary, linkFor, marketplace, plugins, pluginsById } from "./lib/catalog.js";
-import { channelFor, inChannel, installCommands, notInChannel, securityBadges, versionLabel } from "./lib/install.js";
+import { channelFor, inChannel, installCommands, needsOwnInstall, notInChannel, securityBadges, versionLabel } from "./lib/install.js";
 import { Highlight } from "./lib/highlight.jsx";
 import { TYPE_LABEL } from "./lib/search.js";
 import { useApp, useCopy } from "./state.jsx";
@@ -112,9 +112,11 @@ export function InstallPanel({ plugin }) {
         : <p className="notice">{notInChannel([plugin.name], channel)}</p>}
       <p className="hint">
         {scope === "project"
-          ? "Run inside the repository. It writes .claude/settings.json; commit that file so teammates get the plugin after they trust the folder."
+          ? needsOwnInstall(plugin, channel)
+            ? "Run inside the repository and commit .claude/settings.json. Each teammate also runs the install command once: the settings file alone does not install a plugin pinned to a commit or hosted elsewhere."
+            : "Run inside the repository. It writes .claude/settings.json; commit that file so teammates get the plugin after they trust the folder."
           : "Installs for your user account in every project."}
-        {plugin.external ? " This plugin comes from another repository; each person installs it once." : ""}
+        {" "}To keep it current, turn on auto-update for the marketplace (the install list's settings file does).
       </p>
       <AddButton pluginId={plugin.id} />
       <p className="hint">Installing several plugins? Collect them in the <Link to="/install/">install list</Link>.</p>
