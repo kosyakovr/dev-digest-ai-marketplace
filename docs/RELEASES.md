@@ -8,10 +8,10 @@ only in `plugin.json`, CHANGELOG entry) are in [CONTRIBUTING.md](../CONTRIBUTING
 
 | Plugin | Version | Tag | Depends on |
 |---|---|---|---|
-| engineering-paved-path | 1.0.0 | `engineering-paved-path--v1.0.0` | — |
-| research-tools | 1.0.0 | `research-tools--v1.0.0` | — |
-| architecture-review | 1.0.0 | `architecture-review--v1.0.0` | engineering-paved-path `^1.0.0` |
-| sdd-engineering | 1.1.0 | `sdd-engineering--v1.1.0` | engineering-paved-path `^1.0.0`, research-tools `^1.0.0`, architecture-review `^1.0.0` |
+| engineering-paved-path | 1.1.0 | `engineering-paved-path--v1.1.0` | — |
+| research-tools | 1.1.0 | `research-tools--v1.1.0` | — |
+| architecture-review | 1.1.0 | `architecture-review--v1.1.0` | engineering-paved-path (compat `^1.0.0`) |
+| sdd-engineering | 1.2.0 | `sdd-engineering--v1.2.0` | engineering-paved-path, research-tools, architecture-review (compat `^1.0.0` each) |
 
 ```mermaid
 flowchart BT
@@ -24,9 +24,9 @@ flowchart BT
 ## How versions resolve
 
 - **The version lives in `plugin.json` only.** It must be SemVer; `check_marketplace.py` enforces it.
-- **Dependencies are declared in the dependent's `plugin.json`** as `{ "name": "<plugin>", "version": "<range>" }`, with bare names from this marketplace. Ranges use node-semver syntax; this marketplace uses `^MAJOR.0.0`.
-- **Claude Code installs a dependency at the highest git tag that satisfies the range.** Tags are `<plugin>--v<version>` on this repository, so a version that is not tagged cannot satisfy a dependent. `check_marketplace.py` checks that every bare dependency exists here and that each `^` range accepts the dependency's current version.
-- **What is a breaking change.** Removing or renaming a skill or agent, changing an agent's required inputs, report headings other components parse (`Verdict:`, `Result:`, `Status:`, `## Insight candidates`, `## Handoff to …`), or a skill's § numbering that agents cite. A breaking change in a dependency is a new major, and every dependent widens its range in the same pull request.
+- **Dependencies are declared in the dependent's `plugin.json` by name only**, so Claude Code installs the copy this marketplace serves rather than resolving a range against git tags. The range a dependent was tested against lives in `metadata.compat` as `^X.Y.Z`; Claude Code does not read it, and `check_marketplace.py` checks that each dependency is in the catalog and that its current version satisfies the range. See [docs/specs/release-channels.md](specs/release-channels.md) for why.
+- **Tags** are `<plugin>--v<version>` on this repository. Dependencies inside this marketplace no longer resolve against them; they record releases, and serve other marketplaces that depend on these plugins with a range.
+- **What is a breaking change.** Removing or renaming a skill or agent, changing an agent's required inputs, report headings other components parse (`Verdict:`, `Result:`, `Status:`, `## Insight candidates`, `## Handoff to …`), or a skill's § numbering that agents cite. A breaking change in a dependency is a new major, and every dependent widens its `metadata.compat` range in the same pull request; `check_marketplace.py` fails the pull request otherwise.
 
 ## Release order
 
@@ -83,6 +83,7 @@ One row per released version. Fill in the commit and eval columns when the relea
 | 2026-10-20 | research-tools | 1.0.0 | `research-tools--v1.0.0` | `90ae6ec` | validate --strict ✓, policy checks ✓ | 1/1 case, 3/3 runs, Δ +1.00 |
 | 2026-10-20 | architecture-review | 1.0.0 | `architecture-review--v1.0.0` | `90ae6ec` | validate --strict ✓, policy checks ✓ | 1/1 case (repo-level), 3/3 runs, Δ +0.50 |
 | 2026-10-20 | sdd-engineering | 1.0.0 | `sdd-engineering--v1.0.0` | `90ae6ec` | validate --strict ✓, policy checks ✓, self-tests ✓, four-plugin `--plugin-dir` load: 7 agents + 15 skills resolve by namespace ✓ | 3/3 cases (repo-level), 9/9 runs; Δ +0.56 spec-creator, +1.00 planner, 0 for the negative sdd-run case |
+| 2026-10-21 | sdd-engineering | 1.1.0 | `sdd-engineering--v1.1.0` | `8c4f57b` | validate --strict ✓, policy checks ✓, spec-lint self-test 13/13 ✓ | new case `spec-creator-keeps-every-story-covered`: 3/3 runs, Δ +0.73; other cases not re-run |
 
 ## History
 

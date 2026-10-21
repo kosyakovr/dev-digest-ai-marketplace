@@ -2,6 +2,11 @@
 
 All notable changes to `engineering-paved-path` are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [1.1.0]
+
+### Added
+- `metadata.category` in `plugin.json`, the source the generated latest catalog takes the plugin's category from (spec `docs/specs/release-channels.md`, R9).
+
 ## [1.0.0]
 
 ### Added

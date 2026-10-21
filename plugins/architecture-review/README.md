@@ -12,7 +12,7 @@ claude plugin marketplace add kosyakovr/dev-digest-ai-marketplace
 claude plugin install architecture-review@dev-digest-ai
 ```
 
-Installing it also installs `engineering-paved-path ^1.0.0`, whose architecture skills it loads. It is itself a dependency of `sdd-engineering`.
+Installing it also installs `engineering-paved-path` (compatible range `^1.0.0`), whose architecture skills it loads. It is itself a dependency of `sdd-engineering`.
 
 ## Components
 
