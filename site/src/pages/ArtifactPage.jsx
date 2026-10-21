@@ -1,5 +1,5 @@
 import { Link, useParams } from "react-router-dom";
-import { CommandBlock, InstallPanel, TypeBadge } from "../components.jsx";
+import { ChannelVersions, CommandBlock, InstallPanel, TypeBadge } from "../components.jsx";
 import { fileUrl, itemsById, pluginsById } from "../lib/catalog.js";
 import NotFoundPage from "./NotFoundPage.jsx";
 
@@ -58,7 +58,7 @@ export default function ArtifactPage() {
             <h2 id="facts-h">Details</h2>
             <dl className="kv">
               <dt>Plugin</dt>
-              <dd><Link to={`/plugins/${plugin.id}/`}>{plugin.name}</Link> {plugin.version && <span className="ver">v{plugin.version}</span>}</dd>
+              <dd><Link to={`/plugins/${plugin.id}/`}>{plugin.name}</Link> <ChannelVersions plugin={plugin} /></dd>
               {tools.length > 0 && <><dt>Tools</dt><dd>{tools.map(t => <span key={t} className="chip mono-chip">{t}</span>)}</dd></>}
               <dt>Source</dt>
               <dd><a className="mono" href={fileUrl(artifact.path)} target="_blank" rel="noopener">{artifact.path}</a></dd>

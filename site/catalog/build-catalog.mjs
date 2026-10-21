@@ -5,7 +5,7 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 import YAML from "yaml";
 import { Marked } from "marked";
-import { BRANCH, REPO, SITE_BASE } from "./config.mjs";
+import { BRANCH, LATEST_MARKETPLACE, LATEST_REF, REPO, SITE_BASE } from "./config.mjs";
 
 export class CatalogError extends Error {}
 
@@ -45,8 +45,23 @@ function describeSource(source) {
   }
 }
 
-export function buildCatalog(repoRoot, { base = SITE_BASE, repo = REPO } = {}) {
+/** Read a file as it was at a commit. Throws when git cannot (no repository, unknown commit, shallow clone). */
+const gitShow = root => (sha, file) =>
+  execFileSync("git", ["-C", root, "show", `${sha}:${file}`], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+
+/** A stable entry pinned to a commit of this repository: git-subdir at plugins/<name>, which exists here. */
+function isOwnPin(root, entry) {
+  const source = entry.source;
+  if (source?.source !== "git-subdir") return false;
+  const sub = String(source.path || "").replace(/^\.\//, "").replace(/\/+$/, "");
+  return sub === `plugins/${entry.name}` && isDir(path.join(root, sub));
+}
+
+export function buildCatalog(repoRoot, {
+  base = SITE_BASE, repo = REPO, latestMarketplace = LATEST_MARKETPLACE, latestRef = LATEST_REF, readAtCommit,
+} = {}) {
   const root = path.resolve(repoRoot);
+  const readPinned = readAtCommit || gitShow(root);
   const rel = p => toPosix(path.relative(root, p));
   const repoUrl = `https://github.com/${repo}`;
   const errors = [];
@@ -67,27 +82,67 @@ export function buildCatalog(repoRoot, { base = SITE_BASE, repo = REPO } = {}) {
   const plugins = [];
   const raw = []; // components before Markdown rendering: { record, file, markdown }
 
+  // Release channels (docs/specs/release-channels.md). The latest channel lists every directory under plugins/
+  // that has a plugin.json; the stable catalog lists pins (git-subdir at a commit of this repository), relative
+  // paths (stable at the working-tree version, the form before the switch to pins) and plugins hosted elsewhere.
+  // Pages always come from the working tree; each plugin carries its version in both channels.
+  const pluginsDir = path.join(root, "plugins");
+  const listed = []; // { name, entry: stable entry or null, dir: local plugin directory or null, pinned }
+  const claimed = new Set();
   for (const entry of marketplace.plugins || []) {
-    const name = entry.name;
-    const hosted = typeof entry.source === "string";
+    if (typeof entry.source === "string") {
+      const dir = path.resolve(root, entry.source);
+      if (!dir.startsWith(root + path.sep) || !isDir(dir)) { errors.push(`marketplace entry "${entry.name}": source ${entry.source} does not exist`); continue; }
+      listed.push({ name: entry.name, entry, dir, pinned: false });
+      claimed.add(dir);
+    } else if (isOwnPin(root, entry)) {
+      const dir = path.join(pluginsDir, entry.name);
+      listed.push({ name: entry.name, entry, dir, pinned: true });
+      claimed.add(dir);
+    } else {
+      listed.push({ name: entry.name, entry, dir: null, pinned: false });
+    }
+  }
+  const latestDirs = new Set(listDir(pluginsDir).map(n => path.join(pluginsDir, n)).filter(d => isFile(path.join(d, ".claude-plugin", "plugin.json"))));
+  for (const dir of latestDirs) if (!claimed.has(dir)) listed.push({ name: path.basename(dir), entry: null, dir, pinned: false });
+  listed.sort((a, b) => a.name.localeCompare(b.name));
+
+  /** The version in plugin.json at a pinned commit; records a build error rather than guessing when git cannot read it. */
+  const pinnedVersion = (name, sha) => {
+    const file = `plugins/${name}/.claude-plugin/plugin.json`;
+    if (!/^[0-9a-f]{40}$/.test(sha || "")) { errors.push(`marketplace entry "${name}": a pin needs a full 40-character sha`); return null; }
+    try {
+      const version = JSON.parse(readPinned(sha, file)).version;
+      if (version) return String(version);
+      errors.push(`marketplace entry "${name}": ${file} at ${sha} has no version`);
+    } catch (e) {
+      errors.push(`marketplace entry "${name}": cannot read ${file} at ${sha} (${String(e.message).trim().split("\n")[0]})`);
+    }
+    return null;
+  };
+
+  for (const { name, entry, dir, pinned } of listed) {
     const plugin = {
       id: name, type: "plugin", name, plugin: name,
-      description: entry.description || "", category: entry.category || "", version: entry.version || "",
-      external: !hosted, source: hosted ? "" : describeSource(entry.source),
+      description: entry?.description || "", category: entry?.category || "", version: entry?.version || "",
+      // null: the channel does not list the plugin ("latest only" when stableVersion is null).
+      stableVersion: dir ? null : entry.version || "", latestVersion: null, stableCommit: pinned ? entry.source.sha || "" : "",
+      external: !dir, source: dir ? "" : describeSource(entry.source),
       path: "", aliases: [], readme: "", changelog: "", readmeHtml: "", changelogHtml: "",
       security: { hooks: [], mcpServers: [], lspServers: [], executables: [] },
     };
     plugins.push(plugin);
-    if (!hosted) continue;
+    if (!dir) continue;
 
-    const dir = path.resolve(root, entry.source);
-    if (!dir.startsWith(root + path.sep) || !isDir(dir)) { errors.push(`marketplace entry "${name}": source ${entry.source} does not exist`); continue; }
     const manifest = readJson(path.join(dir, ".claude-plugin", "plugin.json")) || {};
     const inside = p => { const abs = path.resolve(dir, p); return abs === dir || abs.startsWith(dir + path.sep) ? abs : null; };
     const aliases = manifest.metadata?.site?.aliases || {};
 
     plugin.version = manifest.version || plugin.version;
-    plugin.description = entry.description || manifest.description || "";
+    plugin.latestVersion = latestDirs.has(dir) ? plugin.version : null;
+    plugin.stableVersion = !entry ? null : pinned ? pinnedVersion(name, entry.source.sha) : plugin.version;
+    plugin.description = entry?.description || manifest.description || "";
+    plugin.category = entry?.category || manifest.metadata?.category || "";
     plugin.path = rel(dir);
     plugin.aliases = asList(aliases.plugin);
     plugin.readme = isFile(path.join(dir, "README.md")) ? fs.readFileSync(path.join(dir, "README.md"), "utf8") : "";
@@ -226,7 +281,14 @@ export function buildCatalog(repoRoot, { base = SITE_BASE, repo = REPO } = {}) {
 
   return {
     schemaVersion: 1,
-    marketplace: { name: mpName, description: marketplace.description || "", owner: marketplace.owner?.name || "", repo, repoUrl, branch: BRANCH, commit },
+    marketplace: {
+      name: mpName, description: marketplace.description || "", owner: marketplace.owner?.name || "", repo, repoUrl, branch: BRANCH, commit,
+      // What `marketplace add` and the install commands need per channel; `ref` is the branch a channel is served from.
+      channels: {
+        stable: { marketplace: mpName, repo, ref: "" },
+        latest: { marketplace: latestMarketplace, repo, ref: latestRef },
+      },
+    },
     plugins,
     artifacts: raw.map(r => r.record),
   };

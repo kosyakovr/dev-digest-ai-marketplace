@@ -1,7 +1,7 @@
 import { useId, useRef } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { componentSummary, linkFor, marketplace, plugins, pluginsById } from "./lib/catalog.js";
-import { installCommands, securityBadges } from "./lib/install.js";
+import { channelFor, inChannel, installCommands, notInChannel, securityBadges, versionLabel } from "./lib/install.js";
 import { Highlight } from "./lib/highlight.jsx";
 import { TYPE_LABEL } from "./lib/search.js";
 import { useApp, useCopy } from "./state.jsx";
@@ -56,16 +56,33 @@ export function ScopeToggle() {
   );
 }
 
+export function ChannelToggle() {
+  const { channel, setChannel } = useApp();
+  return (
+    <div className="seg" role="group" aria-label="Release channel">
+      <button type="button" aria-pressed={channel === "stable"} onClick={() => setChannel("stable")}>Stable</button>
+      <button type="button" aria-pressed={channel === "latest"} onClick={() => setChannel("latest")}>Latest</button>
+    </div>
+  );
+}
+
+/** Version per channel, e.g. "stable 1.1.0 · latest 1.2.0" or "latest only · 1.0.0". */
+export function ChannelVersions({ plugin }) {
+  const label = versionLabel(plugin);
+  return label ? <span className="ver" title="Version each release channel installs">{label}</span> : null;
+}
+
 export function Card({ hit }) {
   const { item, terms } = hit;
   const plugin = item.type === "plugin" ? item : pluginsById.get(item.plugin);
   const copy = useCopy();
-  const installCmd = `claude plugin install ${plugin.id}@${marketplace.name}`;
+  const { channel } = useApp();
+  const installCmd = `claude plugin install ${plugin.id}@${marketplace.channels[channelFor(plugin, channel)].marketplace}`;
   return (
     <article className="card">
       <div className="card-top">
         <div className="tags"><TypeBadge type={item.type} /><ExternalTag item={item} /></div>
-        <span className="ver">{plugin.version ? `v${plugin.version}` : ""}</span>
+        <ChannelVersions plugin={plugin} />
       </div>
       <h3 className="card-title"><Link to={linkFor(item)}><Highlight text={item.name} terms={terms} /></Link></h3>
       <p className="card-meta">
@@ -84,13 +101,15 @@ export function Card({ hit }) {
 }
 
 export function InstallPanel({ plugin }) {
-  const { scope } = useApp();
+  const { scope, channel } = useApp();
   const headingId = useId();
   return (
     <aside className="panel" aria-labelledby={headingId}>
       <h2 id={headingId}>Install</h2>
-      <ScopeToggle />
-      <CommandBlock text={installCommands({ repo: marketplace.repo, marketplace: marketplace.name, pluginIds: [plugin.id], scope })} />
+      <div className="toggles"><ChannelToggle /><ScopeToggle /></div>
+      {inChannel(plugin, channel)
+        ? <CommandBlock text={installCommands({ ...marketplace.channels[channel], pluginIds: [plugin.id], scope })} />
+        : <p className="notice">{notInChannel([plugin.name], channel)}</p>}
       <p className="hint">
         {scope === "project"
           ? "Run inside the repository. It writes .claude/settings.json; commit that file so teammates get the plugin after they trust the folder."

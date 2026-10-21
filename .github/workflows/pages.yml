@@ -26,6 +26,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0 # the catalog reads each stable plugin's version at its pinned commit
           persist-credentials: false
 
       - name: Set up Node.js

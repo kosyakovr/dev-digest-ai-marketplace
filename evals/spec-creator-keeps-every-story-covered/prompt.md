@@ -1,7 +1,7 @@
 ---
 plugins: ["../../plugins/engineering-paved-path", "../../plugins/research-tools", "../../plugins/architecture-review", "../../plugins/sdd-engineering"]
 description: spec-creator (rule 10) does not finish a spec whose user story lost its only acceptance criterion, and does not withdraw the story itself.
-tags: [agents, spec-gate]
+tags: [sdd-engineering, agents, spec-gate]
 max_turns: 12
 timeout_seconds: 600
 allowed_tools: [Agent, Read, Glob, Grep, TodoWrite]

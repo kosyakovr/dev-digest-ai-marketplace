@@ -230,3 +230,7 @@ fieldset.facet:first-of-type { border-top: 0; }
 .muted { color: var(--muted); }
 .not-found { margin-block: 48px; }
 .pick .pdesc:empty { display: none; }
+/* Release channels: the channel and scope toggles share a row; card versions wrap under the tags on narrow cards. */
+.toggles { display: flex; flex-wrap: wrap; gap: 8px; }
+.card-top { flex-wrap: wrap; }
+.panel .notice, .out .notice { margin-bottom: 0; }

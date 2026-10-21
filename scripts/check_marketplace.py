@@ -7,6 +7,12 @@ in, dependencies are declared by name and resolve inside the same catalog
 at a version their dependent's compatibility range accepts, manifests carry
 no credentials, and no hidden Unicode or non-executable shell scripts slip in.
 
+Release channels (docs/specs/release-channels.md): every directory under
+plugins/ is checked, since the latest channel serves them all. A catalog of
+pins is the stable channel: each pin is checked against plugin.json at its
+commit on main, and compatibility is checked for both channels. A catalog of
+relative paths (the generated latest catalog) must list every plugin.
+
 Usage: python3 scripts/check_marketplace.py [--root <marketplace dir>]
 Exit code 0 = all checks passed, 1 = at least one error.
 Test: python3 scripts/test_check_marketplace.py (offline).
@@ -19,13 +25,16 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import channels  # noqa: E402  (shared with the other release-channel scripts)
+
 ROOT = (Path(sys.argv[sys.argv.index("--root") + 1]) if "--root" in sys.argv
         else Path(__file__).parent.parent).resolve()
 MARKETPLACE = ROOT / ".claude-plugin" / "marketplace.json"
 PLUGINS_DIR = ROOT / "plugins"
 
 KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
-SEMVER = re.compile(r"^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$")
+SEMVER = re.compile(r"^\d+\.\d+\.\d+$")  # no pre-releases: channels replace them (R10)
 RESERVED_PREFIXES = ("claude-", "anthropic-", "anthropics-", "cc-plugin-")
 RESERVED_NAMES = {"claude", "anthropic", "anthropics", "claude-code", "claude-mods"}
 REQUIRED_PLUGIN_FILES = ("README.md", "CHANGELOG.md", "LICENSE")
@@ -184,29 +193,11 @@ def check_dependencies(catalog: str, manifests: dict[str, dict]) -> None:
             error(f"{where}: metadata.compat names {extra!r}, which is not in dependencies")
 
 
-MANIFESTS: dict[str, dict] = {}
+WORKTREE: dict[str, dict] = {}  # every plugin under plugins/, as checked in the tree
 
 
-def check_plugin(entry: dict, index: int) -> None:
-    where = f"marketplace.json plugins[{index}]"
-    name = entry.get("name")
-    source = entry.get("source")
-
-    if "version" in entry:
-        error(f"{where}: set `version` only in plugin.json, not in the marketplace entry")
-    if not entry.get("description"):
-        error(f"{where}: missing `description`")
-
-    if not isinstance(source, str):
-        return  # external sources are validated by `claude plugin validate`
-    if not source.startswith("./") or ".." in Path(source).parts or "\\" in source:
-        error(f"{where}: source {source!r} must start with './' and must not contain '..' or '\\'")
-        return
-    plugin_dir = (ROOT / source).resolve()
-    if not plugin_dir.is_dir():
-        error(f"{where}: source directory {source!r} does not exist")
-        return
-
+def check_plugin_dir(plugin_dir: Path) -> None:
+    """Checks for every plugin in the tree, whether or not this catalog lists it."""
     manifest_path = plugin_dir / ".claude-plugin" / "plugin.json"
     if not manifest_path.is_file():
         error(f"{rel(plugin_dir)}: missing .claude-plugin/plugin.json")
@@ -214,23 +205,18 @@ def check_plugin(entry: dict, index: int) -> None:
     manifest = load_json(manifest_path)
     if manifest is None:
         return
-
+    name = plugin_dir.name
+    check_name(name, rel(plugin_dir))
     if manifest.get("name") != name:
-        error(f"{rel(manifest_path)}: name {manifest.get('name')!r} != marketplace entry {name!r}")
-    if plugin_dir.name != name:
-        error(f"{rel(plugin_dir)}: directory name must equal plugin name {name!r}")
+        error(f"{rel(manifest_path)}: name {manifest.get('name')!r} must equal its directory name {name!r}")
     version = manifest.get("version", "")
     if not SEMVER.match(str(version)):
-        error(f"{rel(manifest_path)}: version {version!r} is not semver (X.Y.Z)")
-    if manifest.get("description") != entry.get("description"):
-        error(f"{rel(manifest_path)}: description differs from the marketplace entry")
-    category = (manifest.get("metadata") or {}).get("category")
-    if not category:
+        error(f"{rel(manifest_path)}: version {version!r} must be X.Y.Z, with no pre-release suffix")
+    if not manifest.get("description"):
+        error(f"{rel(manifest_path)}: missing `description`")
+    if not (manifest.get("metadata") or {}).get("category"):
         error(f"{rel(manifest_path)}: metadata.category is missing")
-    elif category != entry.get("category"):
-        error(f"{rel(manifest_path)}: metadata.category {category!r} differs from the marketplace entry")
-    if isinstance(name, str):
-        MANIFESTS[name] = manifest
+    WORKTREE[name] = manifest
     for manifest_file in MANIFEST_FILES:
         mf = plugin_dir / manifest_file
         if mf.is_file():
@@ -277,6 +263,61 @@ def check_plugin(entry: dict, index: int) -> None:
                 error(f"{rel(path)}: contains hidden/bidirectional Unicode characters")
 
 
+def check_entry(entry: dict, index: int) -> dict | None:
+    """Check one catalog entry and return the plugin.json it serves: at the pinned
+    commit for a pin (R1, R2), in the tree for a relative path."""
+    where = f"marketplace.json plugins[{index}]"
+    name = entry.get("name")
+    if "version" in entry:
+        error(f"{where}: set `version` only in plugin.json, not in the marketplace entry")
+    if not entry.get("description"):
+        error(f"{where}: missing `description`")
+    if name not in WORKTREE:
+        error(f"{where}: {name!r} has no plugin directory under plugins/")
+        return None
+
+    if channels.is_pin(entry):
+        problems = channels.pin_problems(entry)
+        for problem in problems:
+            error(f"{where}: {problem}")
+        if problems:
+            return None
+        sha = entry["source"]["sha"]
+        main = channels.main_ref(ROOT)
+        if not channels.is_ancestor(ROOT, sha, main):
+            error(f"{where}: sha {sha[:12]} is not a commit on {main}")
+            return None
+        manifest = channels.manifest_at(ROOT, sha, name)
+        if manifest is None:
+            error(f"{where}: plugins/{name}/.claude-plugin/plugin.json does not exist at {sha[:12]}")
+            return None
+        where = f"{where} (pinned at {sha[:12]})"
+    elif entry.get("source") == f"./plugins/{name}":
+        manifest = WORKTREE[name]
+    else:
+        error(f"{where}: source must be './plugins/{name}' or a pin of this repository")
+        return None
+
+    if manifest.get("name") != name:
+        error(f"{where}: plugin.json name {manifest.get('name')!r} differs from the entry")
+    if manifest.get("description") != entry.get("description"):
+        error(f"{where}: description differs from plugin.json")
+    category = (manifest.get("metadata") or {}).get("category")
+    if category != entry.get("category"):
+        error(f"{where}: category {entry.get('category')!r} differs from plugin.json metadata.category {category!r}")
+    return manifest
+
+
+def check_eval_tags() -> None:
+    """Repository-level eval cases carry the name of the plugin they test in `tags`, so a
+    promotion runs only that plugin's cases: `claude plugin eval . --tag <plugin>` (R20)."""
+    for prompt in sorted((ROOT / "evals").glob("*/prompt.md")):
+        fm = parse_frontmatter(prompt) or {}
+        tags = [t.strip().strip("\"'") for t in fm.get("tags", "").strip("[]").split(",") if t.strip()]
+        if not set(tags) & set(WORKTREE):
+            error(f"{rel(prompt)}: tags {tags} name no plugin of this marketplace")
+
+
 def main() -> int:
     marketplace = load_json(MARKETPLACE)
     if marketplace is None:
@@ -291,23 +332,33 @@ def main() -> int:
         return report()
 
     names = [p.get("name") for p in plugins]
-    for i, name in enumerate(names):
-        check_name(name, f"marketplace.json plugins[{i}]")
     duplicates = sorted({n for n in names if names.count(n) > 1})
     if duplicates:
         error(f"marketplace.json: duplicate plugin names {duplicates}")
     if names != sorted(names):
         error("marketplace.json: plugins must be sorted alphabetically by name")
 
-    for i, entry in enumerate(plugins):
-        check_plugin(entry, i)
-    check_dependencies(str(marketplace.get("name")), MANIFESTS)
-
-    listed = {Path(p["source"]).name for p in plugins if isinstance(p.get("source"), str)}
     if PLUGINS_DIR.is_dir():
-        for orphan in sorted(d.name for d in PLUGINS_DIR.iterdir() if d.is_dir() and d.name not in listed):
-            error(f"plugins/{orphan}: directory is not listed in marketplace.json")
+        for plugin_dir in sorted(d for d in PLUGINS_DIR.iterdir() if d.is_dir()):
+            check_plugin_dir(plugin_dir)
 
+    pins = {channels.is_pin(entry) for entry in plugins}
+    if len(pins) > 1:
+        error("marketplace.json: entries must be all pins (stable) or all relative paths (latest), not a mix")
+    served = {}
+    for i, entry in enumerate(plugins):
+        manifest = check_entry(entry, i)
+        if manifest is not None:
+            served[entry["name"]] = manifest
+    check_dependencies(str(marketplace.get("name")), served)
+
+    if True in pins:
+        # Stable may leave plugins out (R3); latest is generated from the whole tree, so check that set too (R7).
+        check_dependencies(channels.LATEST_NAME, WORKTREE)
+    else:
+        for orphan in sorted(set(WORKTREE) - set(names)):
+            error(f"plugins/{orphan}: directory is not listed in marketplace.json")
+    check_eval_tags()
     return report()
 
 

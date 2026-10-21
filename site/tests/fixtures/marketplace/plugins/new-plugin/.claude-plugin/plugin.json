@@ -1,0 +1,6 @@
+{
+  "name": "new-plugin",
+  "version": "0.3.0",
+  "description": "Not promoted to stable yet.",
+  "metadata": { "category": "research" }
+}

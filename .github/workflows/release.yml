@@ -1,21 +1,23 @@
-name: Tag plugin releases
+name: Release channels
 
-# After a merge to main, create a `<plugin>--v<version>` tag for every plugin
-# whose current version is not tagged yet. Tags let dependents pin semver ranges
-# and give each plugin its own release history.
+# After a merge to main (docs/specs/release-channels.md):
+# - latest: regenerate branch `latest` from this commit (R4, R5).
+# - stable: tag `<plugin>--v<version>` at each pinned commit that has no tag
+#   yet, which happens only after a promotion (R12).
 on:
   push:
     branches: [main]
     paths:
       - "plugins/**"
       - ".claude-plugin/marketplace.json"
+      - "scripts/**"
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: release-tags
+  group: release-channels
   cancel-in-progress: false
 
 env:
@@ -24,8 +26,8 @@ env:
   CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1"
 
 jobs:
-  tag:
-    name: Tag new plugin versions
+  latest:
+    name: Publish branch latest
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -33,7 +35,6 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-          fetch-tags: true
 
       - name: Set up Node.js
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -43,41 +44,49 @@ jobs:
       - name: Install Claude Code CLI
         run: npm install --global "@anthropic-ai/claude-code@${CLAUDE_CLI_VERSION}"
 
-      - name: Create missing tags
+      - name: Build and push latest
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # Dependencies first: a plugin is tagged only after every plugin it
-          # depends on, so a failure partway (bash -e stops the loop) never
-          # leaves a dependent tagged without its dependency.
-          order="$(python3 - <<'PY'
-          import json, pathlib
-          deps = {}
-          for p in sorted(pathlib.Path("plugins").glob("*/.claude-plugin/plugin.json")):
-              m = json.loads(p.read_text())
-              names = [d if isinstance(d, str) else d["name"] for d in m.get("dependencies", [])]
-              deps[m["name"]] = [n.split("@")[0] for n in names]
-          done, out = set(), []
-          def visit(n, stack=()):
-              if n in done or n not in deps:
-                  return
-              if n in stack:
-                  raise SystemExit(f"dependency cycle: {' -> '.join(stack + (n,))}")
-              for d in deps[n]:
-                  visit(d, stack + (n,))
-              done.add(n); out.append(n)
-          for n in sorted(deps):
-              visit(n)
-          print("\n".join(f"plugins/{n}/" for n in out))
+          git fetch --quiet origin latest || true   # absent before the first run
+          # Prints the commit only after check_marketplace.py and validate --strict pass on it.
+          commit="$(bash scripts/build_latest_branch.sh "${GITHUB_SHA}")"
+          git push origin "${commit}:refs/heads/latest"
+
+  tags:
+    name: Tag stable releases
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Tag each pinned version that has no tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python3 - <<'PY' > "${RUNNER_TEMP}/pins.tsv"
+          import json, sys
+          sys.path.insert(0, "scripts")
+          import channels
+          from pathlib import Path
+          catalog = json.loads(Path(".claude-plugin/marketplace.json").read_text())
+          for entry in catalog["plugins"]:
+              if channels.is_pin(entry):
+                  sha = entry["source"]["sha"]
+                  manifest = channels.manifest_at(Path("."), sha, entry["name"])
+                  print(f"{entry['name']}\t{manifest['version']}\t{sha}")
           PY
-          )"
-          for dir in $order; do
-            name="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["name"])' "${dir}.claude-plugin/plugin.json")"
-            version="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "${dir}.claude-plugin/plugin.json")"
+          while IFS=$'\t' read -r name version sha; do
             tag="${name}--v${version}"
-            if git rev-parse --verify --quiet "refs/tags/${tag}" >/dev/null; then
-              echo "${tag} already exists, skipping"
+            if existing="$(git rev-parse --verify --quiet "refs/tags/${tag}^{commit}")"; then
+              [ "${existing}" = "${sha}" ] || echo "::warning::${tag} already points at ${existing:0:12}, not the pinned ${sha:0:12}"
               continue
             fi
-            claude plugin tag "${dir}" --push -m "${name} %s"
-          done
+            git tag -a "${tag}" "${sha}" -m "${name} ${version}"
+            git push origin "refs/tags/${tag}"
+            echo "tagged ${tag} at ${sha:0:12}"
+          done < "${RUNNER_TEMP}/pins.tsv"

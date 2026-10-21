@@ -65,7 +65,10 @@ export default function PluginPage() {
             <h1 tabIndex={-1}>{plugin.name}</h1>
             <p className="desc">{plugin.description}</p>
             <div className="row">
-              {plugin.version && <span className="chip mono-chip">v{plugin.version}</span>}
+              {plugin.stableVersion
+                ? <span className="chip mono-chip" title={plugin.stableCommit ? `Stable pins commit ${plugin.stableCommit.slice(0, 7)}` : "Version the stable channel installs"}>stable {plugin.stableVersion}</span>
+                : plugin.stableVersion === null && <span className="chip" title="Not promoted to the stable channel yet">latest only</span>}
+              {plugin.latestVersion && <span className="chip mono-chip" title="Version the latest channel installs">latest {plugin.latestVersion}</span>}
               {plugin.category && <span className="chip">{plugin.category}</span>}
               <SecurityBadges plugin={plugin} />
             </div>
