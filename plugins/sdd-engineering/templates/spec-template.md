@@ -10,6 +10,9 @@ Rules for whoever fills this in (the spec-creator agent or a person):
   Implementation Plan's job. The one exception is § Contract: the boundary
   between areas (routes, payload shapes, shared schemas, tools, UI surface).
 - Every requirement carries an ID and its source (S-n, or "request").
+- Every user story is mandatory, whatever its priority, and needs at least one AC
+  that cites it and is not withdrawn; an NFR does not count. Only the user withdraws
+  a story: `### US-n — <title> (Pn) — withdrawn — <why> (user · <date>)`.
 - Behaviour that already exists is marked `existing` with `path:line`, never re-specified as new.
 - At most 3 `[NEEDS CLARIFICATION: …]` markers; everything else gets a default under § Assumptions.
 - IDs (US, AC, NFR, A, P, S) are stable: never renumber or reuse one; a dropped
@@ -114,7 +117,7 @@ Ticked by whoever wrote the spec; an unticked box is a finding for the planner's
 
 - [ ] Every AC and NFR is one EARS sentence with one trigger and an observable response — no "fast", "properly", "gracefully".
 - [ ] Every number is sourced (`S-n`) or an assumption (`A-n`).
-- [ ] Every user story has an AC and an Independent test; every `S-n` is cited at least once.
+- [ ] Every user story that is not withdrawn has an AC that cites it and is not withdrawn, and an Independent test; every `S-n` is cited at least once.
 - [ ] Every state-matrix cell holds an AC, an `A-n`, a marker or `n/a`.
 - [ ] Every AC and NFR has a row in § Traceability and verification.
 - [ ] No HOW: no file to change, library, layer or work order outside § Sources and § Must keep working.
