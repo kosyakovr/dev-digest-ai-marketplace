@@ -76,7 +76,7 @@ Open a PR that moves the plugin's pin back to an earlier commit with `pin_stable
 
 ## Updating
 
-Users get an update only when the version changes. Auto-update is off by default for third-party marketplaces: `claude plugin marketplace update <marketplace>` refreshes the catalog, then `claude plugin update <plugin>@<marketplace>`. A version that adds a dependency also needs `/reload-plugins` in a session, or marketplace auto-update, to install it.
+Users get an update only when the version changes. Auto-update is off by default for third-party marketplaces. A user turns it on in `/plugin` → **Marketplaces**; a team repository turns it on with `"autoUpdate": true` on the marketplace's `extraKnownMarketplaces` entry (see the README's team section). Auto-update also installs any dependency a new version adds. Without it: `claude plugin marketplace update <marketplace>` refreshes the catalog, then `claude plugin update <plugin>@<marketplace>`, and a version that adds a dependency also needs `/reload-plugins` in a session to install it.
 
 ## Release evidence
 

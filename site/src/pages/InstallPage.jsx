@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ChannelToggle, CommandBlock, ExternalTag, ScopeToggle, SecurityBadges } from "../components.jsx";
 import { marketplace, plugins, pluginsById } from "../lib/catalog.js";
-import { CHANNEL_HINT, inChannel, installCommands, notInChannel, settingsJson, versionLabel } from "../lib/install.js";
+import { CHANNEL_HINT, inChannel, installCommands, needsOwnInstall, notInChannel, settingsJson, versionLabel } from "../lib/install.js";
 import { useApp } from "../state.jsx";
 
 function downloadFile(name, text) {
@@ -19,7 +19,7 @@ export default function InstallPage() {
   // A channel installs only what its catalog lists: no command for a latest-only plugin from stable.
   const installable = ids.filter(id => inChannel(pluginsById.get(id), channel));
   const missing = ids.filter(id => !installable.includes(id));
-  const external = installable.filter(id => pluginsById.get(id).external);
+  const ownInstall = installable.filter(id => needsOwnInstall(pluginsById.get(id), channel));
   const mp = marketplace.channels[channel];
   const args = { ...mp, pluginIds: installable };
   const settings = settingsJson(args);
@@ -79,8 +79,10 @@ export default function InstallPage() {
                       <div className="step">
                         <h3><span>3</span>What teammates see</h3>
                         <p className="hint">
-                          After they trust the folder, Claude Code offers the marketplace and enables the plugins.
-                          {external.length > 0 && <> External plugins ({external.join(", ")}) need one install per person: <code>claude plugin install &lt;name&gt;@{mp.marketplace} --scope project</code>.</>}
+                          After they trust the folder, Claude Code adds the marketplace with auto-update on
+                          {ownInstall.length < installable.length && <> and enables the plugins it lists by path</>}.
+                          {ownInstall.length > 0 && <> The settings file alone does not install {ownInstall.join(", ")}: each teammate runs <code>claude plugin install &lt;name&gt;@{mp.marketplace} --scope project</code> once.</>}
+                          {" "}After that, auto-update keeps the plugins current; a running session picks an update up after <code>/reload-plugins</code>.
                         </p>
                       </div>
                     </>

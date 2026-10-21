@@ -1,6 +1,6 @@
 // Install commands and the team settings file (spec R21), per release channel (release-channels R15).
 import { describe, expect, it } from "vitest";
-import { channelFor, inChannel, installCommands, notInChannel, securityBadges, settingsJson, versionLabel } from "../src/lib/install.js";
+import { channelFor, inChannel, installCommands, needsOwnInstall, notInChannel, securityBadges, settingsJson, versionLabel } from "../src/lib/install.js";
 
 const args = { repo: "kosyakovr/dev-digest-ai-marketplace", marketplace: "dev-digest-ai", pluginIds: ["architecture-review", "sdd-engineering"] };
 
@@ -13,9 +13,9 @@ describe("install list output", () => {
     ]);
   });
 
-  it("writes the settings that `marketplace add --scope project` and the installs produce", () => {
+  it("writes the settings that `marketplace add --scope project` and the installs produce, with auto-update on", () => {
     expect(JSON.parse(settingsJson(args))).toEqual({
-      extraKnownMarketplaces: { "dev-digest-ai": { source: { source: "github", repo: "kosyakovr/dev-digest-ai-marketplace" } } },
+      extraKnownMarketplaces: { "dev-digest-ai": { source: { source: "github", repo: "kosyakovr/dev-digest-ai-marketplace" }, autoUpdate: true } },
       enabledPlugins: { "architecture-review@dev-digest-ai": true, "sdd-engineering@dev-digest-ai": true },
     });
   });
@@ -50,12 +50,21 @@ describe("release channels", () => {
 
   it("writes team settings for the latest marketplace with its ref", () => {
     expect(JSON.parse(settingsJson({ ...latest, pluginIds: ["new-plugin"] }))).toEqual({
-      extraKnownMarketplaces: { "dev-digest-ai-latest": { source: { source: "github", repo: "kosyakovr/dev-digest-ai-marketplace", ref: "latest" } } },
+      extraKnownMarketplaces: { "dev-digest-ai-latest": { source: { source: "github", repo: "kosyakovr/dev-digest-ai-marketplace", ref: "latest" }, autoUpdate: true } },
       enabledPlugins: { "new-plugin@dev-digest-ai-latest": true },
     });
     expect(JSON.parse(settingsJson({ ...stableRef, pluginIds: ["research-tools"] })).extraKnownMarketplaces).toEqual({
-      "dev-digest-ai": { source: { source: "github", repo: "kosyakovr/dev-digest-ai-marketplace" } },
+      "dev-digest-ai": { source: { source: "github", repo: "kosyakovr/dev-digest-ai-marketplace" }, autoUpdate: true },
     });
+  });
+
+  it("asks each teammate to install a stable pin or an external plugin once, not a latest plugin", () => {
+    const pinned = { stableVersion: "1.1.0", latestVersion: "1.2.0", stableCommit: "f".repeat(40) };
+    const relative = { stableVersion: "1.1.0", latestVersion: "1.1.0", stableCommit: "" };
+    expect(needsOwnInstall(pinned, "stable")).toBe(true);
+    expect(needsOwnInstall(pinned, "latest")).toBe(false);
+    expect(needsOwnInstall(relative, "stable")).toBe(false);
+    expect(needsOwnInstall({ external: true }, "stable")).toBe(true);
   });
 
   it("does not offer a latest-only plugin from stable, and says why", () => {

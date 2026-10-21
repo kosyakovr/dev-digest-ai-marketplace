@@ -13,11 +13,12 @@ export function installCommands({ repo, ref = "", marketplace, pluginIds, scope 
   ].join("\n");
 }
 
-/** The .claude/settings.json that `marketplace add --scope project` plus the installs write. */
+/** The .claude/settings.json that `marketplace add --scope project` plus the installs write, with background
+ * auto-update turned on: it is off by default for third-party marketplaces. */
 export function settingsJson({ repo, ref = "", marketplace, pluginIds }) {
   return JSON.stringify(
     {
-      extraKnownMarketplaces: { [marketplace]: { source: { source: "github", repo, ...(ref && { ref }) } } },
+      extraKnownMarketplaces: { [marketplace]: { source: { source: "github", repo, ...(ref && { ref }) }, autoUpdate: true } },
       enabledPlugins: Object.fromEntries(pluginIds.map(id => [`${id}@${marketplace}`, true])),
     },
     null,
@@ -33,6 +34,12 @@ export function inChannel(plugin, channel) {
 /** The channel to install from: the chosen one when it lists the plugin, otherwise the one that does. */
 export function channelFor(plugin, preferred) {
   return inChannel(plugin, preferred) ? preferred : CHANNELS.find(c => inChannel(plugin, c)) || preferred;
+}
+
+/** Whether each teammate installs the plugin once: a project settings file alone installs only a plugin the
+ * marketplace lists by relative path, so not a stable pin (a git-subdir at a commit) or a plugin hosted elsewhere. */
+export function needsOwnInstall(plugin, channel) {
+  return Boolean(plugin.external || (channel === "stable" && plugin.stableCommit));
 }
 
 /** What to say instead of an install command for plugins the chosen channel does not list. */
