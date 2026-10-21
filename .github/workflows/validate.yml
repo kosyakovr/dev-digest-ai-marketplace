@@ -48,6 +48,9 @@ jobs:
       - name: Policy checks (sources, names, versions, frontmatter, hidden Unicode)
         run: python3 scripts/check_marketplace.py
 
+      - name: Policy check tests
+        run: python3 scripts/test_check_marketplace.py
+
       - name: README catalog is up to date
         run: python3 scripts/generate_catalog.py --check
 

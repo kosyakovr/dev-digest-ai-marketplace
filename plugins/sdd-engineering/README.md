@@ -12,7 +12,7 @@ claude plugin install sdd-engineering@dev-digest-ai
 ```
 
 Installing `sdd-engineering` also installs its dependencies:
-`engineering-paved-path`, `research-tools` and `architecture-review` (each `^1.0.0`).
+`engineering-paved-path`, `research-tools` and `architecture-review` (compatible range `^1.0.0` each).
 
 ## Components
 

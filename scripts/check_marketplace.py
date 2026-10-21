@@ -3,11 +3,13 @@
 
 Covers what `claude plugin validate` does not: source directories exist,
 entry and manifest agree, required files are present, frontmatter is filled
-in, dependencies resolve inside this marketplace, manifests carry no
-credentials, and no hidden Unicode or non-executable shell scripts slip in.
+in, dependencies are declared by name and resolve inside the same catalog
+at a version their dependent's compatibility range accepts, manifests carry
+no credentials, and no hidden Unicode or non-executable shell scripts slip in.
 
-Usage: python3 scripts/check_marketplace.py
+Usage: python3 scripts/check_marketplace.py [--root <marketplace dir>]
 Exit code 0 = all checks passed, 1 = at least one error.
+Test: python3 scripts/test_check_marketplace.py (offline).
 """
 from __future__ import annotations
 
@@ -17,7 +19,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = (Path(sys.argv[sys.argv.index("--root") + 1]) if "--root" in sys.argv
+        else Path(__file__).parent.parent).resolve()
 MARKETPLACE = ROOT / ".claude-plugin" / "marketplace.json"
 PLUGINS_DIR = ROOT / "plugins"
 
@@ -130,7 +133,7 @@ def find_secrets(value: object, path: str, where: str) -> None:
 
 
 def caret_allows(spec: str, version: str) -> bool | None:
-    """True/False for a simple `^X.Y.Z` range, None for anything else."""
+    """True/False for a `^X.Y.Z` range and an `X.Y.Z` version, None for anything else."""
     m = re.fullmatch(r"\^(\d+)\.(\d+)\.(\d+)", spec.strip())
     v = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)", version)
     if not m or not v:
@@ -143,27 +146,42 @@ def caret_allows(spec: str, version: str) -> bool | None:
     return cur[:2] == lo[:2] if lo[1] > 0 else cur == lo
 
 
-def check_dependencies(manifests: dict[str, dict]) -> None:
-    """Bare dependency names must be plugins of this marketplace, and a `^`
-    range must accept the dependency's current version."""
+def check_dependencies(catalog: str, manifests: dict[str, dict]) -> None:
+    """Dependencies are bare names of plugins in the same catalog (so Claude
+    Code resolves them inside the user's channel), and each one's version
+    satisfies the `^X.Y.Z` range the dependent keeps in `metadata.compat`."""
     for name, manifest in manifests.items():
-        for dep in manifest.get("dependencies") or []:
-            dep_name = dep if isinstance(dep, str) else dep.get("name")
-            spec = None if isinstance(dep, str) else dep.get("version")
-            if not isinstance(dep_name, str):
-                error(f"plugins/{name}: dependency {dep!r} has no name")
+        where = f"{catalog}: plugins/{name}"
+        deps = manifest.get("dependencies") or []
+        compat = (manifest.get("metadata") or {}).get("compat") or {}
+        if not isinstance(compat, dict):
+            error(f"{where}: metadata.compat must be an object of dependency name to range")
+            compat = {}
+        names = []
+        for dep in deps:
+            if not isinstance(dep, str):
+                error(f"{where}: dependency {dep!r} must be a bare plugin name; "
+                      "put its range in metadata.compat")
                 continue
-            if "@" in dep_name or (isinstance(dep, dict) and dep.get("marketplace")):
-                continue  # cross-marketplace: validated by Claude Code at install time
-            if dep_name == name:
-                error(f"plugins/{name}: depends on itself")
-            elif dep_name not in manifests:
-                error(f"plugins/{name}: dependency {dep_name!r} is not a plugin of this marketplace")
-            elif spec:
-                ok = caret_allows(spec, str(manifests[dep_name].get("version", "")))
-                if ok is False:
-                    error(f"plugins/{name}: dependency range {dep_name} {spec} excludes its current "
-                          f"version {manifests[dep_name].get('version')}")
+            names.append(dep)
+            if "@" in dep:
+                error(f"{where}: dependency {dep!r} names another marketplace, which this marketplace does not use")
+            elif dep == name:
+                error(f"{where}: depends on itself")
+            elif dep not in manifests:
+                error(f"{where}: dependency {dep!r} is not in this catalog")
+            spec = compat.get(dep)
+            if spec is None:
+                error(f"{where}: dependency {dep!r} has no range in metadata.compat")
+                continue
+            dep_version = str(manifests.get(dep, {}).get("version", ""))
+            ok = caret_allows(str(spec), dep_version) if dep in manifests else None
+            if not re.fullmatch(r"\^\d+\.\d+\.\d+", str(spec)):
+                error(f"{where}: metadata.compat range {dep} {spec!r} must have the form ^X.Y.Z")
+            elif ok is False:
+                error(f"{where}: {dep} {dep_version} is outside its range {spec} in metadata.compat")
+        for extra in sorted(set(compat) - set(names)):
+            error(f"{where}: metadata.compat names {extra!r}, which is not in dependencies")
 
 
 MANIFESTS: dict[str, dict] = {}
@@ -206,6 +224,11 @@ def check_plugin(entry: dict, index: int) -> None:
         error(f"{rel(manifest_path)}: version {version!r} is not semver (X.Y.Z)")
     if manifest.get("description") != entry.get("description"):
         error(f"{rel(manifest_path)}: description differs from the marketplace entry")
+    category = (manifest.get("metadata") or {}).get("category")
+    if not category:
+        error(f"{rel(manifest_path)}: metadata.category is missing")
+    elif category != entry.get("category"):
+        error(f"{rel(manifest_path)}: metadata.category {category!r} differs from the marketplace entry")
     if isinstance(name, str):
         MANIFESTS[name] = manifest
     for manifest_file in MANIFEST_FILES:
@@ -278,7 +301,7 @@ def main() -> int:
 
     for i, entry in enumerate(plugins):
         check_plugin(entry, i)
-    check_dependencies(MANIFESTS)
+    check_dependencies(str(marketplace.get("name")), MANIFESTS)
 
     listed = {Path(p["source"]).name for p in plugins if isinstance(p.get("source"), str)}
     if PLUGINS_DIR.is_dir():

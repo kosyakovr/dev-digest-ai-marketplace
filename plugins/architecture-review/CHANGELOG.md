@@ -2,6 +2,14 @@
 
 All notable changes to `architecture-review` are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [1.1.0]
+
+### Added
+- `metadata.category` in `plugin.json`, the source the generated latest catalog takes the plugin's category from (spec `docs/specs/release-channels.md`, R9).
+
+### Changed
+- Dependencies are declared by name only (`engineering-paved-path`), so Claude Code resolves them inside the user's release channel instead of against repository-wide tags. The compatibility range (`^1.0.0`) moved to `metadata.compat`, where the marketplace's CI checks it; Claude Code no longer checks it at load time (spec R6, R7).
+
 ## [1.0.0]
 
 ### Added

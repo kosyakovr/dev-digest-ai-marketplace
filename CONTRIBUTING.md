@@ -19,8 +19,9 @@
 
 ## Dependencies between plugins
 
-- Declare them in the dependent's `plugin.json` as `{ "name": "<plugin>", "version": "^<major>.0.0" }`. Bare names resolve against this marketplace, and `check_marketplace.py` checks that the name exists and that the range accepts the dependency's current version.
-- Claude Code installs a dependency at the highest **tag** that satisfies the range, so a dependency must be released (merged and tagged) before a dependent needs its new version. Release order and the rollback procedure are in [docs/RELEASES.md](docs/RELEASES.md).
+- Declare them in the dependent's `plugin.json` **by name only**: `"dependencies": ["engineering-paved-path"]`. A name with no `version` resolves to the copy the user's own marketplace serves, so a dependency never comes from git tags or from another release channel ([docs/specs/release-channels.md](docs/specs/release-channels.md), R6).
+- Put the range you tested against in `metadata.compat`, as `^X.Y.Z`: `"metadata": {"compat": {"engineering-paved-path": "^1.0.0"}}`. Claude Code does not read it; `check_marketplace.py` checks that every dependency has one, that the dependency is in the same catalog, and that its version satisfies the range (R7). A major version of a dependency therefore lands together with the dependents that accept it.
+- Set `metadata.category` in `plugin.json` to the category of the plugin's marketplace entry (R9).
 - Refer to another plugin's components by namespace only: `engineering-paved-path:zod`, `research-tools:researcher`. Never by path; another plugin's install directory is unknown.
 
 ## Writing skills and agents
@@ -41,6 +42,7 @@
 
 ```bash
 python3 scripts/check_marketplace.py
+python3 scripts/test_check_marketplace.py
 python3 scripts/generate_catalog.py --check
 claude plugin validate . --strict
 for d in plugins/*/; do claude plugin validate "$d" --strict; done

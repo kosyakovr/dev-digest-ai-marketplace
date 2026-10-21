@@ -1,6 +1,6 @@
 {
   "name": "architecture-review",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Architecture reviewer agent: checks a change against the repository's own architecture docs and the engineering-paved-path architecture skills, with verified rule-based findings.",
   "author": {
     "name": "Ruslan Kosiakov",
@@ -16,9 +16,12 @@
     "adr"
   ],
   "dependencies": [
-    {
-      "name": "engineering-paved-path",
-      "version": "^1.0.0"
+    "engineering-paved-path"
+  ],
+  "metadata": {
+    "category": "development",
+    "compat": {
+      "engineering-paved-path": "^1.0.0"
     }
-  ]
+  }
 }
