@@ -1,6 +1,6 @@
 // Install commands and the team settings file (spec R21), per release channel (release-channels R15).
 import { describe, expect, it } from "vitest";
-import { channelFor, inChannel, installCommands, needsOwnInstall, notInChannel, securityBadges, settingsJson, versionLabel } from "../src/lib/install.js";
+import { channelFor, inChannel, installCommands, notInChannel, securityBadges, settingsJson, versionLabel } from "../src/lib/install.js";
 
 const args = { repo: "kosyakovr/dev-digest-ai-marketplace", marketplace: "dev-digest-ai", pluginIds: ["architecture-review", "sdd-engineering"] };
 
@@ -56,15 +56,6 @@ describe("release channels", () => {
     expect(JSON.parse(settingsJson({ ...stableRef, pluginIds: ["research-tools"] })).extraKnownMarketplaces).toEqual({
       "dev-digest-ai": { source: { source: "github", repo: "kosyakovr/dev-digest-ai-marketplace" }, autoUpdate: true },
     });
-  });
-
-  it("asks each teammate to install a stable pin or an external plugin once, not a latest plugin", () => {
-    const pinned = { stableVersion: "1.1.0", latestVersion: "1.2.0", stableCommit: "f".repeat(40) };
-    const relative = { stableVersion: "1.1.0", latestVersion: "1.1.0", stableCommit: "" };
-    expect(needsOwnInstall(pinned, "stable")).toBe(true);
-    expect(needsOwnInstall(pinned, "latest")).toBe(false);
-    expect(needsOwnInstall(relative, "stable")).toBe(false);
-    expect(needsOwnInstall({ external: true }, "stable")).toBe(true);
   });
 
   it("does not offer a latest-only plugin from stable, and says why", () => {

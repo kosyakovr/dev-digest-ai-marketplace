@@ -1,7 +1,7 @@
 import { useId, useRef } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { componentSummary, linkFor, marketplace, plugins, pluginsById } from "./lib/catalog.js";
-import { channelFor, inChannel, installCommands, needsOwnInstall, notInChannel, securityBadges, versionLabel } from "./lib/install.js";
+import { channelFor, inChannel, installCommands, notInChannel, securityBadges, versionLabel } from "./lib/install.js";
 import { Highlight } from "./lib/highlight.jsx";
 import { TYPE_LABEL } from "./lib/search.js";
 import { useApp, useCopy } from "./state.jsx";
@@ -112,9 +112,7 @@ export function InstallPanel({ plugin }) {
         : <p className="notice">{notInChannel([plugin.name], channel)}</p>}
       <p className="hint">
         {scope === "project"
-          ? needsOwnInstall(plugin, channel)
-            ? "Run inside the repository and commit .claude/settings.json. Each teammate also runs the install command once: the settings file alone does not install a plugin pinned to a commit or hosted elsewhere."
-            : "Run inside the repository. It writes .claude/settings.json; commit that file so teammates get the plugin after they trust the folder."
+          ? "Run inside the repository and commit .claude/settings.json. Each teammate also runs the install command once: the settings file alone does not reliably install and load the plugin."
           : "Installs for your user account in every project."}
         {" "}To keep it current, turn on auto-update for the marketplace (the install list's settings file does).
       </p>
