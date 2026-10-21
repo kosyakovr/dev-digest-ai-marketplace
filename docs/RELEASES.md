@@ -84,6 +84,8 @@ One row per released version. Fill in the commit and eval columns when the relea
 
 **1.0.0 install check (2026-10-20):** in a clean config, `claude plugin marketplace add kosyakovr/dev-digest-ai-marketplace` then `claude plugin install sdd-engineering@dev-digest-ai` installed and enabled all four plugins (`+ 3 dependencies`, no prompt), the dependencies at their `--v1.0.0` tags. The **Tag plugin releases** run tagged them in dependency order: engineering-paved-path, architecture-review, research-tools, sdd-engineering.
 
+**Release channels install check (2026-10-21, Claude Code 2.1.296):** after #7 (`b7ace28`), the **Release channels** workflow published branch `latest` (`87d9ba1`, main's tree with the generated `dev-digest-ai-latest` catalog) and created no tags, because every pin at `f26efd7` was already tagged. In a clean `CLAUDE_CONFIG_DIR` for each channel, `claude plugin marketplace add kosyakovr/dev-digest-ai-marketplace` then `claude plugin install sdd-engineering@dev-digest-ai`, and `… dev-digest-ai-marketplace#latest` then `sdd-engineering@dev-digest-ai-latest`, each installed and enabled sdd-engineering 1.2.0 with its three dependencies at 1.1.0 (`+ 3 dependencies`), the dependencies from the same channel (spec R19).
+
 | Date | Plugin | Version | Tag | Commit | Validation | Evals (judge: sonnet, 3 runs, with vs. without plugin) |
 |---|---|---|---|---|---|---|
 | 2026-10-20 | engineering-paved-path | 1.0.0 | `engineering-paved-path--v1.0.0` | `90ae6ec` | validate --strict ✓, policy checks ✓ | 2/2 cases, 6/6 runs (Δ 0: base model already knows these rules; skill loads by namespace 3/3) |
