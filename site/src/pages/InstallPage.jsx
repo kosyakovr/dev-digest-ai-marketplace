@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ChannelToggle, CommandBlock, ExternalTag, ScopeToggle, SecurityBadges } from "../components.jsx";
 import { marketplace, plugins, pluginsById } from "../lib/catalog.js";
-import { CHANNEL_HINT, inChannel, installCommands, notInChannel, settingsJson, versionLabel } from "../lib/install.js";
+import { CHANNELS, CHANNEL_HINT, inChannel, installCommands, notInChannel, settingsJson, switchCommands, versionLabel } from "../lib/install.js";
 import { useApp } from "../state.jsx";
 
 function downloadFile(name, text) {
@@ -22,6 +22,9 @@ export default function InstallPage() {
   const mp = marketplace.channels[channel];
   const args = { ...mp, pluginIds: installable };
   const settings = settingsJson(args);
+  const other = CHANNELS.find(c => c !== channel);
+  const switchArgs = { from: marketplace.channels[other], to: mp, pluginIds: installable, scope };
+  const label = c => c[0].toUpperCase() + c.slice(1);
 
   return (
     <div className="wrap">
@@ -71,7 +74,9 @@ export default function InstallPage() {
                     <>
                       <div className="step">
                         <h3><span>2</span>Commit <code>.claude/settings.json</code></h3>
-                        <p className="hint">Step 1 writes this file. To set it up by hand instead, merge this into the file and commit it.</p>
+                        <p className="hint">
+                          Step 1 writes this file, but without <code>"autoUpdate": true</code>. Merge this into the file and commit it.
+                        </p>
                         <CommandBlock text={settings} label="Copy JSON" />
                         <div><button type="button" className="btn" onClick={() => downloadFile("settings.json", settings)}>Download settings.json</button></div>
                       </div>
@@ -92,6 +97,27 @@ export default function InstallPage() {
                       or run <code>claude plugin marketplace update {mp.marketplace}</code>.
                     </p>
                   )}
+                  <details className="switch">
+                    <summary>Switching from {label(other)}?</summary>
+                    <div className="step">
+                      <p className="hint">
+                        Removing a marketplace also uninstalls its plugins and deletes their saved options and data, so these
+                        commands install them again from {label(channel)}.
+                        {scope === "project" && " Run them inside the repository, then merge the settings file from step 2 and commit it."}
+                      </p>
+                      <CommandBlock text={switchCommands(switchArgs)} />
+                      {scope === "project" && (
+                        <>
+                          <p className="hint">
+                            After pulling that commit, each teammate runs these once. The first line uninstalls their{" "}
+                            {label(other)} copies; the <code>marketplace add</code> line registers the new marketplace for
+                            them without changing the committed file, and the install fails without it.
+                          </p>
+                          <CommandBlock text={switchCommands({ ...switchArgs, teammate: true })} />
+                        </>
+                      )}
+                    </div>
+                  </details>
                 </>
               )}
             </>
