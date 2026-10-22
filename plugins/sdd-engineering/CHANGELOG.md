@@ -2,6 +2,19 @@
 
 All notable changes to `sdd-engineering` are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [1.3.0]
+
+### Removed
+- `spec-creator` rule 10, added in 1.1.0: spec-creator again finishes a spec without requiring every mandatory user story to have an acceptance criterion that is not withdrawn. The report header drops `Stories with AC: <n>/<n>`, the handoff line no longer names uncovered stories, and an uncovered story no longer makes the Status `blocked` on its own. The agent, the spec template and `spec-lint.sh` are back to their 1.0.0 text; the dependency changes of 1.2.0 stay.
+- Spec template: the rule above and the withdrawn-story heading form.
+- Eval case `spec-creator-keeps-every-story-covered`, which tested rule 10.
+
+### Changed
+- `spec-lint.sh` `no-ac` is back to its 1.0.0 behaviour: a story counts as covered when any AC or NFR cites it, withdrawn or not, and the detail reads `<US-n> has no AC or NFR`. Check name, line format and exit codes are unchanged.
+
+### Compatibility
+- Backward compatible: no agent, input, `Status:` value or parsed report heading changed. `Stories with AC` was informational and nothing parses it.
+
 ## [1.2.0]
 
 ### Added

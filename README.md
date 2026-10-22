@@ -55,7 +55,7 @@ How the channels work, and how a version gets promoted, is in [docs/RELEASES.md]
 | [architecture-review](plugins/architecture-review) | 1.1.0 | 1.1.0 | development | Architecture reviewer agent: checks a change against the repository's own architecture docs and the engineering-paved-path architecture skills, with verified rule-based findings. | `claude plugin install architecture-review@dev-digest-ai` |
 | [engineering-paved-path](plugins/engineering-paved-path) | 1.1.0 | 1.1.0 | development | Shared technical skills for the paved path: React, testing, Next.js, Fastify, architecture, Drizzle, PostgreSQL, Zod, TypeScript, security and Mermaid, plus a map from files to skills. | `claude plugin install engineering-paved-path@dev-digest-ai` |
 | [research-tools](plugins/research-tools) | 1.1.0 | 1.1.0 | research | Read-only researcher agent that answers one concrete question with evidence from the repository, official docs, changelogs and issues. | `claude plugin install research-tools@dev-digest-ai` |
-| [sdd-engineering](plugins/sdd-engineering) | 1.2.0 | 1.2.0 | development | Spec-driven development harness: spec, plan, test, implementation and verification agents, an end-to-end /sdd-run orchestrator, run retrospectives and engineering insights. | `claude plugin install sdd-engineering@dev-digest-ai` |
+| [sdd-engineering](plugins/sdd-engineering) | 1.2.0 | 1.3.0 | development | Spec-driven development harness: spec, plan, test, implementation and verification agents, an end-to-end /sdd-run orchestrator, run retrospectives and engineering insights. | `claude plugin install sdd-engineering@dev-digest-ai` |
 <!-- catalog:end -->
 
 ## How the plugins work together
