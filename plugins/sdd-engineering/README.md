@@ -11,6 +11,8 @@ claude plugin marketplace add kosyakovr/dev-digest-ai-marketplace
 claude plugin install sdd-engineering@dev-digest-ai
 ```
 
+These commands use the stable channel. For the latest channel, or to switch between the two, see [Install](../../README.md#install) in the marketplace README.
+
 Installing `sdd-engineering` also installs its dependencies:
 `engineering-paved-path`, `research-tools` and `architecture-review` (compatible range `^1.0.0` each).
 

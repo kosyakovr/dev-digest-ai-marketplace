@@ -210,6 +210,9 @@ mark { background: var(--mark); color: inherit; border-radius: 2px; padding: 0 1
 .step { display: grid; gap: 8px; }
 .step h3 { font-family: var(--font-body); font-size: 0.9375rem; font-weight: 600; }
 .step h3 span { font-family: var(--font-mono); color: var(--muted); font-weight: 400; margin-right: 6px; }
+.switch { border-top: 1px solid var(--line); padding-top: 14px; }
+.switch summary { cursor: pointer; font-weight: 600; font-size: 0.9375rem; }
+.switch[open] summary { margin-bottom: 10px; }
 
 .site-footer { border-top: 1px solid var(--line); color: var(--muted); font-size: 0.8125rem; }
 .site-footer .wrap { padding-block: 18px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }

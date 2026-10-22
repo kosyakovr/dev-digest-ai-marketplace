@@ -1,6 +1,6 @@
 // Install commands and the team settings file (spec R21), per release channel (release-channels R15).
 import { describe, expect, it } from "vitest";
-import { channelFor, inChannel, installCommands, notInChannel, securityBadges, settingsJson, versionLabel } from "../src/lib/install.js";
+import { channelFor, inChannel, installCommands, notInChannel, securityBadges, settingsJson, switchCommands, versionLabel } from "../src/lib/install.js";
 
 const args = { repo: "kosyakovr/dev-digest-ai-marketplace", marketplace: "dev-digest-ai", pluginIds: ["architecture-review", "sdd-engineering"] };
 
@@ -13,9 +13,9 @@ describe("install list output", () => {
     ]);
   });
 
-  it("writes the settings that `marketplace add --scope project` and the installs produce", () => {
+  it("writes the settings that `marketplace add --scope project` and the installs produce, with auto-update on", () => {
     expect(JSON.parse(settingsJson(args))).toEqual({
-      extraKnownMarketplaces: { "dev-digest-ai": { source: { source: "github", repo: "kosyakovr/dev-digest-ai-marketplace" } } },
+      extraKnownMarketplaces: { "dev-digest-ai": { source: { source: "github", repo: "kosyakovr/dev-digest-ai-marketplace" }, autoUpdate: true } },
       enabledPlugins: { "architecture-review@dev-digest-ai": true, "sdd-engineering@dev-digest-ai": true },
     });
   });
@@ -50,12 +50,28 @@ describe("release channels", () => {
 
   it("writes team settings for the latest marketplace with its ref", () => {
     expect(JSON.parse(settingsJson({ ...latest, pluginIds: ["new-plugin"] }))).toEqual({
-      extraKnownMarketplaces: { "dev-digest-ai-latest": { source: { source: "github", repo: "kosyakovr/dev-digest-ai-marketplace", ref: "latest" } } },
+      extraKnownMarketplaces: { "dev-digest-ai-latest": { source: { source: "github", repo: "kosyakovr/dev-digest-ai-marketplace", ref: "latest" }, autoUpdate: true } },
       enabledPlugins: { "new-plugin@dev-digest-ai-latest": true },
     });
     expect(JSON.parse(settingsJson({ ...stableRef, pluginIds: ["research-tools"] })).extraKnownMarketplaces).toEqual({
-      "dev-digest-ai": { source: { source: "github", repo: "kosyakovr/dev-digest-ai-marketplace" } },
+      "dev-digest-ai": { source: { source: "github", repo: "kosyakovr/dev-digest-ai-marketplace" }, autoUpdate: true },
     });
+  });
+
+  it("switches channels by removing the other marketplace, then adding and installing again", () => {
+    expect(switchCommands({ from: stableRef, to: latest, pluginIds: ["research-tools"], scope: "user" }).split("\n")).toEqual([
+      "claude plugin marketplace remove dev-digest-ai",
+      "claude plugin marketplace add kosyakovr/dev-digest-ai-marketplace#latest",
+      "claude plugin install research-tools@dev-digest-ai-latest",
+    ]);
+    const team = { from: latest, to: stableRef, pluginIds: ["research-tools"], scope: "project" };
+    expect(switchCommands(team).split("\n")).toEqual([
+      "claude plugin marketplace remove dev-digest-ai-latest --scope project",
+      "claude plugin marketplace add kosyakovr/dev-digest-ai-marketplace --scope project",
+      "claude plugin install research-tools@dev-digest-ai --scope project",
+    ]);
+    // A teammate who pulled the switch removes the old marketplace from every scope, not from the committed file.
+    expect(switchCommands({ ...team, teammate: true }).split("\n")[0]).toBe("claude plugin marketplace remove dev-digest-ai-latest");
   });
 
   it("does not offer a latest-only plugin from stable, and says why", () => {

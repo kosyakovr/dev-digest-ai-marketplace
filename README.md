@@ -21,9 +21,29 @@ claude plugin install sdd-engineering@dev-digest-ai
 
 Inside a session, `/plugin` opens the same flow interactively.
 
-- **Register one channel only.** With both, every plugin installs twice, once per marketplace. To switch, run `claude plugin marketplace remove <name>` and add the other channel.
+- **Register one channel only.** With both, every plugin installs twice, once per marketplace. To move to the other one, see [Switch channels](#switch-channels).
 - **Dependencies come from your channel.** A plugin's dependencies install from the same channel as the plugin.
 - **Updates.** Auto-update is off by default for third-party marketplaces. Turn it on in `/plugin` → **Marketplaces**, or run `claude plugin marketplace update <marketplace>` and then `claude plugin update <plugin>@<marketplace>`. When an update adds a dependency, run `/reload-plugins` in a session to install it.
+
+### Switch channels
+
+Removing a marketplace also uninstalls every plugin installed from it, and deletes their saved options and data. Switching is therefore remove, add, install again. From stable to latest:
+
+```bash
+claude plugin marketplace remove dev-digest-ai
+claude plugin marketplace add kosyakovr/dev-digest-ai-marketplace#latest
+claude plugin install sdd-engineering@dev-digest-ai-latest
+```
+
+From latest to stable:
+
+```bash
+claude plugin marketplace remove dev-digest-ai-latest
+claude plugin marketplace add kosyakovr/dev-digest-ai-marketplace
+claude plugin install sdd-engineering@dev-digest-ai
+```
+
+Install every plugin you had, not only `sdd-engineering`; its dependencies come along with it. A running session keeps the plugins it loaded until `/reload-plugins` or the next start. For a team repository, see [Switch a team repository](#switch-a-team-repository).
 
 How the channels work, and how a version gets promoted, is in [docs/RELEASES.md](docs/RELEASES.md).
 
@@ -97,13 +117,14 @@ No agent assumes a repository layout. The run resolves each input once — `--in
 
 ## Use in a team repository
 
-Commit this to the project's `.claude/settings.json` so that everyone who trusts the folder gets the marketplace and the plugins:
+Commit this to the project's `.claude/settings.json`. It registers the marketplace for everyone who trusts the folder, turns on background auto-update for it (third-party marketplaces have it off by default), and enables the plugins:
 
 ```json
 {
   "extraKnownMarketplaces": {
     "dev-digest-ai": {
-      "source": { "source": "github", "repo": "kosyakovr/dev-digest-ai-marketplace" }
+      "source": { "source": "github", "repo": "kosyakovr/dev-digest-ai-marketplace" },
+      "autoUpdate": true
     }
   },
   "enabledPlugins": {
@@ -114,7 +135,33 @@ Commit this to the project's `.claude/settings.json` so that everyone who trusts
 
 Enabling `sdd-engineering` enables its three dependencies as well.
 
-For the latest channel, name the marketplace `dev-digest-ai-latest`, add `"ref": "latest"` to its `source`, and enable `sdd-engineering@dev-digest-ai-latest`.
+- **Each teammate installs once, in either channel.** After trusting the folder, each teammate runs `claude plugin install sdd-engineering@dev-digest-ai --scope project` once; auto-update keeps the plugins current from then on. The settings file alone is not enough: in stable, every plugin is pinned to a commit, and Claude Code does not install it (`Plugin "<name>" is enabled in project settings but isn't installed`); in latest, the plugins arrive but a new session loads them only after `/reload-plugins`, and `claude -p` not at all (checked 2026-10-21 on Claude Code 2.1.296).
+- **Latest.** Name the marketplace `dev-digest-ai-latest`, add `"ref": "latest"` to its `source`, enable `sdd-engineering@dev-digest-ai-latest`, and install that id once.
+- **How auto-update behaves.** It runs in the background of an interactive session, a few minutes after the first message, and installs any dependency a new version adds. A running session keeps the version it loaded until `/reload-plugins` or the next start. `DISABLE_AUTOUPDATER=1`, `DISABLE_UPDATES=1` or `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1` turn it off unless `FORCE_AUTOUPDATE_PLUGINS=1` is also set.
+
+The [install list](https://kosyakovr.github.io/dev-digest-ai-marketplace/install/) builds this file for any set of plugins and either channel.
+
+### Switch a team repository
+
+One person moves the repository to the other channel and commits `.claude/settings.json`. From stable to latest, inside the repository:
+
+```bash
+claude plugin marketplace remove dev-digest-ai --scope project
+claude plugin marketplace add kosyakovr/dev-digest-ai-marketplace#latest --scope project
+claude plugin install sdd-engineering@dev-digest-ai-latest --scope project
+```
+
+The first command takes the stable marketplace and its plugins out of the file and uninstalls them; the other two write the latest ones. The file they write has no `"autoUpdate": true`, so add it to the `dev-digest-ai-latest` entry before you commit.
+
+After pulling that commit, every teammate runs, once:
+
+```bash
+claude plugin marketplace remove dev-digest-ai
+claude plugin marketplace add kosyakovr/dev-digest-ai-marketplace#latest --scope project
+claude plugin install sdd-engineering@dev-digest-ai-latest --scope project
+```
+
+Without the first line, a teammate keeps the stable plugins installed and disabled, and the stable marketplace registered. Without the second, the install can fail with `Plugin "sdd-engineering" not found in marketplace "dev-digest-ai-latest"`; it does not change the committed file. To go back to stable, run the same commands with the two marketplaces swapped: remove `dev-digest-ai-latest`, add `kosyakovr/dev-digest-ai-marketplace` without `#latest`, install `<plugin>@dev-digest-ai`.
 
 ## Repository layout
 

@@ -112,12 +112,14 @@ export function InstallPanel({ plugin }) {
         : <p className="notice">{notInChannel([plugin.name], channel)}</p>}
       <p className="hint">
         {scope === "project"
-          ? "Run inside the repository. It writes .claude/settings.json; commit that file so teammates get the plugin after they trust the folder."
+          ? "Run inside the repository and commit .claude/settings.json. Each teammate also runs the install command once: the settings file alone does not reliably install and load the plugin."
           : "Installs for your user account in every project."}
-        {plugin.external ? " This plugin comes from another repository; each person installs it once." : ""}
+        {" "}To keep it current, turn on auto-update for the marketplace (the install list's settings file does).
       </p>
       <AddButton pluginId={plugin.id} />
-      <p className="hint">Installing several plugins? Collect them in the <Link to="/install/">install list</Link>.</p>
+      <p className="hint">
+        Installing several plugins, or switching from the other channel? The <Link to="/install/">install list</Link> has the commands.
+      </p>
     </aside>
   );
 }
