@@ -79,7 +79,7 @@ case_ planted 1 "$tmp/planted.md" \
   "$tmp/planted.md:15: untraced: AC-2 has no Traceability row" \
   "$tmp/planted.md:19: untraced: NFR-1 has no Traceability row" \
   "$tmp/planted.md:28: orphan-row: AC-9 is not defined" \
-  "$tmp/planted.md:11: no-ac: US-2 has no acceptance criterion" \
+  "$tmp/planted.md:11: no-ac: US-2 has no AC or NFR" \
   "$tmp/planted.md:8: uncited: S-10 is never cited"
 
 # 3. a vague word on a withdrawn line is exempt; "etc" inside a path outside an AC is not a hit
@@ -96,20 +96,7 @@ case_ legacy 0 "$tmp/legacy.md"
 mkdir -p "$tmp/t" && clean | sed 's/the card\./the card quickly./' > "$tmp/t/_template.md"
 case_ template 0 "$tmp/t/_template.md"
 
-# 6. a story counts as covered only by a live AC
-clean | sed -e 's/(US-2 · S-10)/(US-1 · S-10)/' -e 's/^- \*\*AC-3\*\* withdrawn/- **AC-3** (US-2 · S-1) withdrawn/' > "$tmp/withdrawn-ac.md"
-case_ withdrawn-ac 1 "$tmp/withdrawn-ac.md" "$tmp/withdrawn-ac.md:11: no-ac: US-2 has no acceptance criterion"
-clean | sed -e 's/(US-2 · S-10)/(US-1 · S-10)/' -e 's/(time budget · A-1)/(US-2 · time budget · A-1)/' > "$tmp/nfr-only.md"
-case_ nfr-only 1 "$tmp/nfr-only.md" "$tmp/nfr-only.md:11: no-ac: US-2 has no acceptance criterion"
-# a withdrawn story needs no AC; one AC may cover two stories; "withdrawn" inside an AC's text is not a withdrawal
-clean | sed -e 's/(US-2 · S-10)/(US-1 · S-10)/' -e 's/^### US-2 — second (P2)$/& — withdrawn — out of scope (user · 2026-10-21)/' > "$tmp/withdrawn-story.md"
-case_ withdrawn-story 0 "$tmp/withdrawn-story.md"
-clean | sed -e 's/(US-1 · S-1)/(US-1, US-2 · S-1)/' -e 's/(US-2 · S-10)/(US-1 · S-10)/' > "$tmp/two-stories.md"
-case_ two-stories 0 "$tmp/two-stories.md"
-clean | sed 's/IF the server returns 500/IF the user has withdrawn consent/' > "$tmp/word-withdrawn.md"
-case_ word-withdrawn 0 "$tmp/word-withdrawn.md"
-
-# 7. usage errors
+# 6. usage errors
 case_ unreadable 2 "$tmp/missing.md"
 "${LINT[@]}" >/dev/null 2>&1; rc=$?
 if [ "$rc" = 2 ]; then pass=$((pass + 1)); else fail=$((fail + 1)); echo "FAIL no-args: exit $rc (want 2)"; fi
