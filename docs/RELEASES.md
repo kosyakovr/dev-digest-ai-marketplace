@@ -97,6 +97,7 @@ One row per released version. Fill in the commit and eval columns when the relea
 | 2026-10-20 | architecture-review | 1.0.0 | `architecture-review--v1.0.0` | `90ae6ec` | validate --strict ✓, policy checks ✓ | 1/1 case (repo-level), 3/3 runs, Δ +0.50 |
 | 2026-10-20 | sdd-engineering | 1.0.0 | `sdd-engineering--v1.0.0` | `90ae6ec` | validate --strict ✓, policy checks ✓, self-tests ✓, four-plugin `--plugin-dir` load: 7 agents + 15 skills resolve by namespace ✓ | 3/3 cases (repo-level), 9/9 runs; Δ +0.56 spec-creator, +1.00 planner, 0 for the negative sdd-run case |
 | 2026-10-21 | sdd-engineering | 1.1.0 | `sdd-engineering--v1.1.0` | `8c4f57b` | validate --strict ✓, policy checks ✓, spec-lint self-test 13/13 ✓ | new case `spec-creator-keeps-every-story-covered`: 3/3 runs, Δ +0.73; other cases not re-run |
+| 2026-10-22 | sdd-engineering | 1.3.0 | `sdd-engineering--v1.3.0` | `636f54e` | validate --strict ✓, policy checks ✓, spec-lint self-test 8/8 ✓; spec-creator, template and spec-lint identical to 1.0.0; clean-config install from stable: 1.3.0 + 3 dependencies at 1.1.0 ✓ | 2/3 cases, 8/9 runs, mean Δ +0.33: planner +0.67 (3/3), spec-creator +0.33 (2/3; one `relays-questions` judge split 1:2 on a reply that meets both criteria), negative sdd-run 0 (3/3) |
 
 ## History
 
