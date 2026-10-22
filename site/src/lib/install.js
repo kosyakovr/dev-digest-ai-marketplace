@@ -13,6 +13,15 @@ export function installCommands({ repo, ref = "", marketplace, pluginIds, scope 
   ].join("\n");
 }
 
+/** Commands that move plugins from the other channel's marketplace `from` to `to`. Removing a marketplace also
+ * uninstalls its plugins, so they are installed again. In a team repository the person who switches removes the old
+ * marketplace from the project settings; a teammate who pulled that change removes it from every scope, which leaves
+ * the committed file alone. */
+export function switchCommands({ from, to, pluginIds, scope, teammate = false }) {
+  const flag = scope === "project" && !teammate ? " --scope project" : "";
+  return [`claude plugin marketplace remove ${from.marketplace}${flag}`, installCommands({ ...to, pluginIds, scope })].join("\n");
+}
+
 /** The .claude/settings.json that `marketplace add --scope project` plus the installs write, with background
  * auto-update turned on: it is off by default for third-party marketplaces. */
 export function settingsJson({ repo, ref = "", marketplace, pluginIds }) {

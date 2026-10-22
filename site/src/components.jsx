@@ -117,7 +117,9 @@ export function InstallPanel({ plugin }) {
         {" "}To keep it current, turn on auto-update for the marketplace (the install list's settings file does).
       </p>
       <AddButton pluginId={plugin.id} />
-      <p className="hint">Installing several plugins? Collect them in the <Link to="/install/">install list</Link>.</p>
+      <p className="hint">
+        Installing several plugins, or switching from the other channel? The <Link to="/install/">install list</Link> has the commands.
+      </p>
     </aside>
   );
 }
