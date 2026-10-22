@@ -25,7 +25,7 @@ Register one channel only. With both, every plugin installs twice, once per mark
 | architecture-review | 1.1.0 | 1.1.0 | engineering-paved-path `^1.0.0` |
 | engineering-paved-path | 1.1.0 | 1.1.0 | — |
 | research-tools | 1.1.0 | 1.1.0 | — |
-| sdd-engineering | 1.2.0 | 1.3.0 | engineering-paved-path `^1.0.0`, research-tools `^1.0.0`, architecture-review `^1.0.0` |
+| sdd-engineering | 1.3.0 | 1.3.0 | engineering-paved-path `^1.0.0`, research-tools `^1.0.0`, architecture-review `^1.0.0` |
 <!-- versions:end -->
 
 ```mermaid

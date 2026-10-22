@@ -50,7 +50,7 @@
         "url": "https://github.com/kosyakovr/dev-digest-ai-marketplace.git",
         "path": "plugins/sdd-engineering",
         "ref": "main",
-        "sha": "f26efd727dd88bb9ba5bc6fe05c10200132e0f5b"
+        "sha": "636f54efcac96cc13a55b66f881e3d0dabdb7bdf"
       },
       "description": "Spec-driven development harness: spec, plan, test, implementation and verification agents, an end-to-end /sdd-run orchestrator, run retrospectives and engineering insights.",
       "category": "development"
