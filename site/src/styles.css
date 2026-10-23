@@ -237,8 +237,7 @@ fieldset.facet:first-of-type { border-top: 0; }
 .toggles { display: flex; flex-wrap: wrap; gap: 8px; }
 .card-top { flex-wrap: wrap; }
 .panel .notice, .out .notice { margin-bottom: 0; }
-/* Text keeps the prose measure; diagrams and tables use the page width. */
+/* Text, tables and diagrams all use the page width. */
 .guide { max-width: none; padding-bottom: 32px; }
-.guide > :not(.diagram):not(table) { max-width: 72ch; }
 .diagram { margin: 1em 0 0; padding: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow-x: auto; }
 .diagram svg { display: block; margin-inline: auto; }
