@@ -5,6 +5,8 @@ import { buildIndex, TYPE_LABEL, TYPE_ORDER } from "./search.js";
 export const marketplace = data.marketplace;
 export const plugins = data.plugins;
 export const components = data.artifacts;
+/** The "How it works" page from the repository README, or null (catalog/build-catalog.mjs). */
+export const guide = data.guide;
 
 export const items = [...plugins.map(p => ({ ...p, body: p.readme })), ...components];
 export const itemsById = new Map(items.map(i => [i.id, i]));

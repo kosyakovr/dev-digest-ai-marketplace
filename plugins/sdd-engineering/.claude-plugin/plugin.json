@@ -1,6 +1,6 @@
 {
   "name": "sdd-engineering",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Spec-driven development harness: spec, plan, test, implementation and verification agents, an end-to-end /sdd-run orchestrator, run retrospectives and engineering insights.",
   "author": {
     "name": "Ruslan Kosiakov",
