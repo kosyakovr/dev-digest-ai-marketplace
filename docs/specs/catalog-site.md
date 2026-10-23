@@ -126,6 +126,7 @@ The site implements every MVP screen with the marketplace's real data. States th
 | S4 | Skill or command page | `/plugins/<plugin>/skills/<name>/` | Breadcrumb, type badge, name, description. How to use it: the slash command (`/plugin:skill`) plus plain-words hint. Details: plugin and version, source file, bundled files with GitHub links. Instructions Claude follows (rendered body). The parent plugin's install panel. | Skill with and without bundled files. | R18–R20 |
 | S5 | Agent page | `/plugins/<plugin>/agents/<name>/` | As S4, with an "ask for it by name" example instead of a slash command, and a Tools row from frontmatter. | Agent with and without `tools`. | R18–R20 |
 | S6 | Install list | `/install/` | Checklist of all plugins (description, version, security badges). Output: "Just me" / "Team repository" toggle. Just me: one command block. Team repository: step 1 commands with `--scope project`, step 2 `.claude/settings.json` with Copy JSON and Download, step 3 what teammates see (with the extra install step for external plugins). | Empty list (call to browse the catalog). One or more plugins, in both scopes. | R21 |
+| S7 | How it works | `/how-it-works/` | Breadcrumb and the repository README's "How the plugins work together" section, rendered at build time with its headings one level down. Its Mermaid diagrams render on this page only, from a chunk loaded there; each keeps its natural size and scrolls sideways (focusable) when wider than the page. Plugin pages whose plugin the section names link here, and so does the header. | Diagrams rendered; Mermaid not loaded yet or failed (the diagram source as a code block). No such README section: no page, no links. | R1, R19, R30 |
 
 Hooks and MCP servers have no page of their own. Their cards open the parent plugin page at the "What runs on your machine" section.
 
@@ -152,6 +153,7 @@ All paths are under the `/dev-digest-ai-marketplace/` base path.
 | Plugin | `/plugins/<plugin>/` | – |
 | Skill, agent or command | `/plugins/<plugin>/<type>s/<name>/` | – |
 | Install list | `/install/` | – |
+| How it works | `/how-it-works/` | – |
 
 ## Catalog record
 

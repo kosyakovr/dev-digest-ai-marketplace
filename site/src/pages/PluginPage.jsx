@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { ExternalTag, InstallPanel, SecurityBadges, TypeBadge } from "../components.jsx";
-import { componentsOf, fileUrl, linkFor, pluginsById } from "../lib/catalog.js";
+import { componentsOf, fileUrl, guide, linkFor, pluginsById } from "../lib/catalog.js";
 import NotFoundPage from "./NotFoundPage.jsx";
 
 function SecuritySection({ plugin }) {
@@ -72,6 +72,11 @@ export default function PluginPage() {
               {plugin.category && <span className="chip">{plugin.category}</span>}
               <SecurityBadges plugin={plugin} />
             </div>
+            {guide?.plugins.includes(plugin.id) && (
+              <p className="hint guide-link">
+                Works with the other plugins in one spec-driven flow: <Link to="/how-it-works/">how the plugins work together</Link>.
+              </p>
+            )}
           </header>
 
           {plugin.external ? (

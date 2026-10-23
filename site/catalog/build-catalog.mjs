@@ -241,7 +241,7 @@ export function buildCatalog(repoRoot, {
 
   // Pages that Markdown links can point to (R20).
   const pageByFile = new Map();
-  for (const p of plugins) if (p.path) pageByFile.set(`${p.path}/README.md`, `${base}plugins/${p.id}/`);
+  for (const p of plugins) if (p.path) for (const f of [p.path, `${p.path}/README.md`]) pageByFile.set(f, `${base}plugins/${p.id}/`);
   for (const { record } of raw) if (["skill", "agent", "command"].includes(record.type)) pageByFile.set(record.path, `${base}plugins/${record.plugin}/${record.type}s/${record.name}/`);
 
   const render = (markdown, fileRel) => {
@@ -280,6 +280,7 @@ export function buildCatalog(repoRoot, {
   for (const { record } of raw) if (record.body) record.bodyHtml = render(record.body, record.path);
 
   return {
+    guide: readGuide(root, plugins, render),
     schemaVersion: 1,
     marketplace: {
       name: mpName, description: marketplace.description || "", owner: marketplace.owner?.name || "", repo, repoUrl, branch: BRANCH, commit,
@@ -294,12 +295,45 @@ export function buildCatalog(repoRoot, {
   };
 }
 
+export const GUIDE_HEADING = "How the plugins work together";
+
+/**
+ * The "How it works" page: the README's `## How the plugins work together` section up to the next `##` heading,
+ * with its headings raised one level so the page title is the only h1. Null when the README has no such section.
+ * `plugins` lists the hosted plugins the section names; their pages link to it.
+ */
+function readGuide(root, plugins, render) {
+  const file = path.join(root, "README.md");
+  if (!isFile(file)) return null;
+  const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
+  const body = [];
+  let inside = false, fenced = false;
+  for (const line of lines) {
+    const heading = !fenced && /^##\s/.test(line);
+    if (/^\s*(```|~~~)/.test(line)) fenced = !fenced;
+    if (heading && inside) break;
+    if (heading && line.replace(/^##\s+/, "").trim() === GUIDE_HEADING) { inside = true; continue; }
+    if (inside) body.push(!fenced && /^#{3,6}\s/.test(line) ? line.slice(1) : line);
+  }
+  const markdown = body.join("\n").trim();
+  if (!markdown) return null;
+  const firstParagraph = markdown.split(/\n\s*\n/)[0].replace(/\s+/g, " ");
+  const mentions = name => new RegExp(`(^|[^\\w-])${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^\\w-]|$)`).test(markdown);
+  return {
+    title: GUIDE_HEADING,
+    description: firstParagraph.replace(/[`*_]/g, ""),
+    html: render(markdown, "README.md"),
+    plugins: plugins.filter(p => !p.external && mentions(p.name)).map(p => p.id),
+  };
+}
+
 /** All site routes, used to write one HTML file per page for GitHub Pages. */
 export function siteRoutes(catalog) {
   const routes = [
     { path: "", title: `${catalog.marketplace.name} catalog`, description: catalog.marketplace.description },
     { path: "install/", title: `Install list · ${catalog.marketplace.name}`, description: "Copy install commands or a team settings file for Claude Code plugins." },
   ];
+  if (catalog.guide) routes.push({ path: "how-it-works/", title: `${catalog.guide.title} · ${catalog.marketplace.name}`, description: catalog.guide.description });
   for (const p of catalog.plugins) routes.push({ path: `plugins/${p.id}/`, title: `${p.name} · ${catalog.marketplace.name}`, description: p.description });
   for (const a of catalog.artifacts) {
     if (["skill", "agent", "command"].includes(a.type)) routes.push({ path: `plugins/${a.plugin}/${a.type}s/${a.name}/`, title: `${a.name} (${a.type}) · ${catalog.marketplace.name}`, description: a.description });
