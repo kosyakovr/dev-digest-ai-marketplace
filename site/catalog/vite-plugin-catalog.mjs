@@ -6,7 +6,7 @@ const VIRTUAL_ID = "virtual:catalog";
 const RESOLVED_ID = "\0" + VIRTUAL_ID;
 
 export default function catalogPlugin({ repoRoot, base }) {
-  const watched = [path.join(repoRoot, ".claude-plugin"), path.join(repoRoot, "plugins")];
+  const watched = [path.join(repoRoot, ".claude-plugin"), path.join(repoRoot, "plugins"), path.join(repoRoot, "README.md")];
   return {
     name: "marketplace-catalog",
     resolveId(id) {

@@ -8,10 +8,13 @@
 #   vague       an AC or NFR uses a word with no observable meaning (fast, properly, …)
 #   untraced    an AC or NFR has no row in § Traceability and verification
 #   orphan-row  a Traceability row names an AC or NFR the spec does not define
-#   no-ac       a user story that no AC or NFR cites
+#   no-ac       a user story that is not withdrawn and that no live AC cites
+#               (an NFR or a withdrawn AC does not count)
 #   uncited     a source S-n that nothing cites
 #   markers     more than 3 [NEEDS CLARIFICATION] questions under § Open questions
-# An AC or NFR marked `withdrawn` is exempt from vague / untraced.
+# An AC or NFR marked `withdrawn` is exempt from vague / untraced. For no-ac, an
+# AC is withdrawn when `withdrawn` follows its ID or tag, and a story when its
+# heading carries `— withdrawn`.
 # Skipped with a note on stderr, and passing: README.md and _template.md, and a
 # file with no "## Traceability and verification" heading (a spec not written
 # from the template).
@@ -57,10 +60,13 @@ for f in "$@"; do
     for id in $(comm -13 <(printf '%s\n' "$all_defined") <(printf '%s\n' "$rows")); do
       echo "$f:$(grep -n -E "^\| $id " "$f" | head -1 | cut -d: -f1): orphan-row: $id is not defined"
     done
-    # no-ac
-    cited=$(grep -oE "$DEF \(US-[0-9]+" "$f" | grep -oE 'US-[0-9]+' | sort -u)
-    for us in $(comm -23 <(grep -oE '^### US-[0-9]+' "$f" | grep -oE 'US-[0-9]+' | sort -u) <(printf '%s\n' "$cited")); do
-      echo "$f:$(grep -n -E "^### $us( |$)" "$f" | head -1 | cut -d: -f1): no-ac: $us has no AC or NFR"
+    # no-ac — every story in the tag of a live AC counts as covered
+    cited=$(grep -E '^- \*\*AC-[0-9]+\*\* \(' "$f" |
+      grep -v -E '^- \*\*AC-[0-9]+\*\* (\([^)]*\) )?withdrawn' |
+      grep -oE '^- \*\*AC-[0-9]+\*\* \([^)]*\)' | grep -oE 'US-[0-9]+' | sort -u)
+    stories=$(grep -E '^### US-[0-9]+( |$)' "$f" | grep -v -E ' — withdrawn' | grep -oE '^### US-[0-9]+' | grep -oE 'US-[0-9]+' | sort -u)
+    for us in $(comm -23 <(printf '%s\n' "$stories") <(printf '%s\n' "$cited")); do
+      echo "$f:$(grep -n -E "^### $us( |$)" "$f" | head -1 | cut -d: -f1): no-ac: $us has no acceptance criterion"
     done
     # uncited
     for s in $(grep -oE '^\| S-[0-9]+ ' "$f" | grep -oE 'S-[0-9]+'); do

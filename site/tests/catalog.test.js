@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { buildCatalog, CatalogError, siteRoutes } from "../catalog/build-catalog.mjs";
+import { buildCatalog, CatalogError, GUIDE_HEADING, siteRoutes } from "../catalog/build-catalog.mjs";
 
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 const fixtureRoot = fileURLToPath(new URL("./fixtures/marketplace", import.meta.url));
@@ -56,6 +56,20 @@ describe("real repository", () => {
     expect(paths).toContain("install/");
     for (const p of catalog.plugins) expect(paths).toContain(`plugins/${p.id}/`);
   });
+
+  it("builds the How it works page from the README's section, diagrams included", () => {
+    const readme = fs.readFileSync(path.join(repoRoot, "README.md"), "utf8");
+    const { guide } = catalog;
+    expect(guide.title).toBe(GUIDE_HEADING);
+    expect(guide.description).toMatch(/^Four plugins, one workflow\./);
+    expect(guide.html).not.toMatch(/<h1/);
+    expect(guide.html).toContain("<h2>The flow</h2>");
+    expect(guide.html.match(/class="language-mermaid"/g)).toHaveLength(readme.split(/^## /m).find(s => s.startsWith(GUIDE_HEADING)).match(/^```mermaid/gm).length);
+    expect(guide.html).not.toContain("Use in a team repository");
+    expect(guide.html).toContain('href="/base/plugins/research-tools/"');
+    expect(guide.plugins).toEqual(catalog.plugins.filter(p => !p.external).map(p => p.id));
+    expect(siteRoutes(catalog).find(r => r.path === "how-it-works/")).toMatchObject({ description: guide.description });
+  });
 });
 
 describe("fixture marketplace", () => {
@@ -97,6 +111,11 @@ describe("fixture marketplace", () => {
     });
     expect(byId.get("new-plugin/skill/try-skill")).toMatchObject({ category: "research", version: "0.3.0" });
     expect(siteRoutes(catalog).map(r => r.path)).toContain("plugins/new-plugin/skills/try-skill/");
+  });
+
+  it("has no How it works page without a README section", () => {
+    expect(catalog.guide).toBeNull();
+    expect(siteRoutes(catalog).map(r => r.path)).not.toContain("how-it-works/");
   });
 
   it("describes both channels' marketplaces (R15)", () => {

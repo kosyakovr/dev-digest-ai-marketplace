@@ -1,6 +1,6 @@
 import { useId, useRef } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { componentSummary, linkFor, marketplace, plugins, pluginsById } from "./lib/catalog.js";
+import { componentSummary, guide, linkFor, marketplace, plugins, pluginsById } from "./lib/catalog.js";
 import { channelFor, inChannel, installCommands, notInChannel, securityBadges, versionLabel } from "./lib/install.js";
 import { Highlight } from "./lib/highlight.jsx";
 import { TYPE_LABEL } from "./lib/search.js";
@@ -136,6 +136,7 @@ export function Header() {
         </Link>
         <nav className="nav" aria-label="Main">
           <NavLink to="/" end>Catalog</NavLink>
+          {guide && <NavLink to="/how-it-works/">How it works</NavLink>}
           <NavLink to="/install/">Install list <span className="count" data-zero={count === 0 || undefined}>{count}</span></NavLink>
           <a href={marketplace.repoUrl} target="_blank" rel="noopener">GitHub ↗</a>
         </nav>

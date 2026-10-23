@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { Footer, Header, Toast } from "./components.jsx";
-import { itemsById, marketplace, pluginsById } from "./lib/catalog.js";
+import { guide, itemsById, marketplace, pluginsById } from "./lib/catalog.js";
 import ArtifactPage from "./pages/ArtifactPage.jsx";
+import GuidePage from "./pages/GuidePage.jsx";
 import InstallPage from "./pages/InstallPage.jsx";
 import NotFoundPage from "./pages/NotFoundPage.jsx";
 import PluginPage from "./pages/PluginPage.jsx";
@@ -13,6 +14,7 @@ const KINDS = { skills: "skill", agents: "agent", commands: "command" };
 function pageTitle(pathname) {
   const [, section, plugin, kind, name] = pathname.split("/");
   if (section === "install") return `Install list · ${marketplace.name}`;
+  if (section === "how-it-works" && guide) return `${guide.title} · ${marketplace.name}`;
   if (section === "plugins" && kind && name) {
     const a = itemsById.get(`${plugin}/${KINDS[kind]}/${name}`);
     return a ? `${a.name} (${a.type}) · ${marketplace.name}` : `Page not found · ${marketplace.name}`;
@@ -55,6 +57,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<SearchPage />} />
           <Route path="/install" element={<InstallPage />} />
+          {guide && <Route path="/how-it-works" element={<GuidePage />} />}
           <Route path="/plugins/:plugin" element={<PluginPage />} />
           <Route path="/plugins/:plugin/:kind/:name" element={<ArtifactPage />} />
           <Route path="*" element={<NotFoundPage />} />

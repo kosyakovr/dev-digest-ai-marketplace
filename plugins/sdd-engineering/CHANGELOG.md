@@ -2,6 +2,19 @@
 
 All notable changes to `sdd-engineering` are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [1.4.0]
+
+### Added
+- `spec-creator` rule 10 again, as in 1.1.0–1.2.0: a spec is not finished while a mandatory requirement has no acceptance criterion. Every user story is mandatory, whatever its priority, until the user withdraws it; it needs at least one AC that cites it and is not withdrawn (an NFR, an Independent test, a proposal or a withdrawn AC does not count). The report says `ready to plan` only when every such story is covered; a story still uncovered after the self-check makes it `blocked`. The report header adds `Stories with AC: <n>/<n>`, and the handoff line names uncovered stories.
+- Spec template: the rule above, and the form of a withdrawn story heading (`— withdrawn — <why> (user · <date>)`).
+- Eval case `spec-creator-keeps-every-story-covered` (repository-level `evals/`), back from 1.2.0.
+
+### Changed
+- `spec-lint.sh` `no-ac`: as in 1.1.0, a story is covered only by an AC that cites it and is not withdrawn; an NFR or a withdrawn AC does not count. A withdrawn story is exempt, and an AC that cites several stories covers each of them. The detail reads `<US-n> has no acceptance criterion`; the check name, line format and exit codes are unchanged.
+
+### Compatibility
+- Backward compatible: no agent, input, report heading or `Status:` value changed. A spec approved under 1.3.0 can get a new `no-ac` line from `spec-lint.sh`; `implementation-planner` treats it as a requirement to review and `sdd-run` relays it, so neither blocks on it.
+
 ## [1.3.0]
 
 ### Removed
