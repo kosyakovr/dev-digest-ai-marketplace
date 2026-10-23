@@ -82,6 +82,19 @@ repository layout the prompt did not name.
    session must save to a file or check out first.
 9. **Batch tool calls.** Batch independent reads and greps into ONE turn as
    parallel tool calls; the number of turns, not file size, drives cost.
+10. **No mandatory requirement without an acceptance criterion.** Every user
+    story is mandatory — its priority orders the work, it does not make the
+    story optional — until the user withdraws it (`— withdrawn — <why> (user ·
+    <date>)` on its heading) or moves it to § Non-goals. A story is covered by
+    at least one AC that cites it in its tag and is not withdrawn; an NFR, an
+    Independent test, a proposal or a withdrawn AC does not cover it. While a
+    story is uncovered the spec is not finished, and the report's Status is
+    never `ready to plan`. Close each gap with an AC from a source, an AC on an
+    `A-n`, or — when the behaviour itself needs a decision — an AC that carries
+    the marker (rule 3); never with a placeholder ("TBD", a vague response),
+    and never by dropping, withdrawing or rewording a story yourself. This holds
+    in every round: an answer or a plan default that withdraws a story's last
+    AC needs a new AC, or the user's word that the story goes too.
 
 ## Step 0 — Preconditions and mode
 
@@ -236,7 +249,7 @@ placeholder text, write "none" where a section does not apply.
   row, a file, a tool result. "Fast", "intuitive", "properly", "gracefully",
   "user-friendly" are not responses — quantify them or drop them.
 - Tag each AC `(US-n · S-n)` or `(US-n · A-n)`; every user story has at least
-  one AC and an Independent test.
+  one AC (rule 10) and an Independent test.
 - An NFR is written the same way, tagged `(<category> · S-n | A-n)`, with a
   fit criterion: a number and its unit, or a pass/fail observation.
 - § Traceability and verification has exactly one row per AC and NFR. Method:
@@ -271,7 +284,8 @@ fails goes into the report under "Self-check failures".
       library, hook, component-to-build or layer name, no work order.
 - [ ] Every AC: one EARS pattern, one trigger, observable, tagged.
 - [ ] Every state-matrix cell filled (an AC, an `A-n`, a marker, or `n/a`).
-- [ ] Every user story has an AC and an Independent test; every `S-n` is cited.
+- [ ] Every user story that is not withdrawn has an AC that cites it and is
+      not withdrawn (rule 10), and an Independent test; every `S-n` is cited.
 - [ ] A changed shared schema names every copy; a stored field names the
       migration gate.
 - [ ] Every NFR has a fit criterion with a source or an `A-n`; every number
@@ -284,8 +298,10 @@ fails goes into the report under "Self-check failures".
 Then run `bash "${CLAUDE_PLUGIN_ROOT}/scripts/spec-lint.sh" <spec>`. It must
 exit 0 with no output; every line it prints is `<file>:<line>: <check>: <detail>`
 for a vague word in an AC/NFR, an AC/NFR with no Traceability row, a row
-naming an undefined ID, a user story with no AC, an uncited `S-n`, or more
-than 3 open questions. Fix and re-run; it counts as part of the pass.
+naming an undefined ID, a user story with no live AC (`no-ac`), an uncited
+`S-n`, or more than 3 open questions. Fix and re-run; it counts as part of the
+pass. A `no-ac` line still printed after the last pass is a Self-check failure
+that blocks the spec (rule 10).
 
 ## Output format
 
@@ -299,10 +315,15 @@ design shows that the spec leaves out (`origin: design`). They are what the
 user did not decide but the spec now fixes; the main session shows both to
 the user as they are.
 
+**Status** is `ready to plan` only when no marker is open and every story
+that is not withdrawn has an AC (rule 10). A story still uncovered after
+Step 7 makes it `blocked`, whatever else holds, and the report names that
+story under Self-check failures.
+
 ```markdown
 # Spec Report: <feature>
 Status: ready to plan | questions open | blocked
-Spec: `<path>` · Areas: <…> · <n> lines · AC: <n> · NFR: <n> · Traced: <n>/<AC+NFR> · Markers: <n>/3 · Proposals: <n>
+Spec: `<path>` · Areas: <…> · <n> lines · AC: <n> · NFR: <n> · Traced: <n>/<AC+NFR> · Markers: <n>/3 · Proposals: <n> · Stories with AC: <n>/<stories not withdrawn>
 
 ## Summary
 <≤8 lines for the user: what the feature does, the biggest gaps the design left, what you need from them>
@@ -334,7 +355,7 @@ Read: S-1 … S-n · Not read: <url — why> (or "none")
 Injection-shaped text seen (not followed): <quote, where> (or "none")
 
 ## Handoff to implementation-planner
-- Spec: `<path>` — ready to plan: yes | no (open markers: <§>)
+- Spec: `<path>` — ready to plan: yes | no (open markers: <§> · stories with no AC: <US-n>)
 - Gates it will raise: <migration / every copy of a shared schema / dependency / paid call> (or "none")
 - Existing code to reuse: `<path:line>` — <what> (or "none")
 
